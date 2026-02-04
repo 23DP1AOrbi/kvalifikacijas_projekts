@@ -1,10 +1,10 @@
 <template>
   <div class="login-form">
-    <h1>Login</h1>
+    <h1>Pieslēgšanās</h1>
     <form @submit.prevent="loginUser">
-      <input v-model="form.email" type="email" placeholder="Email" required />
-      <input v-model="form.password" type="password" placeholder="Password" required />
-      <button type="submit">Login</button>
+      <input v-model="form.email" type="email" placeholder="E-pasts" required />
+      <input v-model="form.password" type="password" placeholder="Parole" required />
+      <button type="submit">Pieslēgties</button>
     </form>
     <div v-if="error" class="error">{{ error }}</div>
     <div v-if="successMessage" class="success">{{ successMessage }}</div>
@@ -25,33 +25,28 @@ export default {
       successMessage: "",
     };
   },
-  methods: {
-    async loginUser() {
-      this.error = '';
-      this.successMessage = '';
-
-      // Important: enable sending cookies for session
-      axios.defaults.withCredentials = true;
-
-      try {
-        const response = await axios.post('/login', this.form);
-        this.successMessage = 'Jūs pieslēdzāties!'
-
-         this.form = {
-            name: "",
-            email: "",
-            password: "",
-            password_confirmation: "",
-            role: "user",
-          };
-
-        console.log(response.data); // Shows success message and user info
-      } catch (err) {
-        if (err.response) {
-          this.error = err.response.data.message;
-        } else {
-          console.error(err);
+methods: {
+     async getCsrfToken() {
+        try {
+            const res = await axios.get('/csrf-token'); // hits the Laravel route
+            axios.defaults.headers.common['X-CSRF-TOKEN'] = res.data.csrf_token;
+            axios.defaults.withCredentials = true; // include session cookie
+        } catch (error) {
+            console.error("Failed to get CSRF token", error);
         }
+    },
+    
+    async loginUser() {
+      this.error = "";
+
+    //   await this.getCsrfToken();
+      
+      try {
+        const res = await axios.post("/login", this.form);
+        console.log(res.data.user); // user info
+        this.successMessage = 'Veiksmīgi pieslēdzāties!'
+      } catch (err) {
+        this.error = err.response.data.message;
       }
     }
   }

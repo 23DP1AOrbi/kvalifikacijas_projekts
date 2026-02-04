@@ -35,13 +35,14 @@
 
       <button type="submit">Reģistrēties</button>
     </form>
-
     <div v-if="successMessage" class="success">{{ successMessage }}</div>
   </div>
 </template>
 
 <script>
 import axios from "axios";
+
+
 
 export default {
   data() {
@@ -58,9 +59,21 @@ export default {
     };
   },
   methods: {
+     async getCsrfToken() {
+      try {
+          const res = await axios.get('/csrf-token'); // hits the Laravel route
+          axios.defaults.headers.common['X-CSRF-TOKEN'] = res.data.csrf_token;
+          axios.defaults.withCredentials = true; // include session cookie
+      } catch (error) {
+          console.error("Failed to get CSRF token", error);
+      }
+    },
+
       async registerUser() {
         this.errors = {};
         this.successMessage = "";
+
+        await this.getCsrfToken();
 
         try {
           const response = await axios.post("/register", this.form);
@@ -75,7 +88,7 @@ export default {
             role: "user",
           };
 
-          console.log(response.data);
+          // console.log(response.data);
 
         } catch (error) {
           if (error.response?.status === 422) {

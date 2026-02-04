@@ -3,6 +3,7 @@ import Home from '../components/Home.vue';
 import About from '../components/About.vue';
 import Register from '../components/Register.vue';
 import Login from '../components/Login.vue';
+import Logout from '../components/Logout.vue'
 
 
 
@@ -11,7 +12,7 @@ const routes = [
     { path: '/about', component: About },
     { path: '/register', component: Register },
     { path: '/login', component: Login }
-
+    // { path: '/logout', component: Logout }
 
 ];
 
