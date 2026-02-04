@@ -25,13 +25,13 @@
         <input v-model="form.password_confirmation" type="password" id="password_confirmation" required />
       </div>
 
-      <div>
+      <!-- <div>
         <label for="role">Lomas</label>
         <select v-model="form.role">
           <option value="user">Lietotājs</option>
           <option value="admin">Admins</option>
         </select>
-      </div>
+      </div> -->
 
       <button type="submit">Reģistrēties</button>
     </form>
@@ -58,36 +58,34 @@ export default {
     };
   },
   methods: {
-    async registerUser() {
-      this.errors = {};
-      this.successMessage = "";
+      async registerUser() {
+        this.errors = {};
+        this.successMessage = "";
 
-      try {
-        const response = await axios.post("http://127.0.0.1:8000/api/register", this.form, {
-          headers: {
-            "Accept": "application/json",
-          },
-        });
+        try {
+          const response = await axios.post("/register", this.form);
 
-        this.successMessage = "User registered successfully!";
-        // Clear the form
-        this.form.name = "";
-        this.form.email = "";
-        this.form.password = "";
-        this.form.password_confirmation = "";
-        this.form.role = "user";
+          this.successMessage = "Lietotājs veiksmīgi pievienots!";
 
-        console.log(response.data);
+          this.form = {
+            name: "",
+            email: "",
+            password: "",
+            password_confirmation: "",
+            role: "user",
+          };
 
-      } catch (error) {
-        if (error.response && error.response.status === 422) {
-          // Validation errors
-          this.errors = error.response.data.errors;
-        } else {
-          console.error(error);
+          console.log(response.data);
+
+        } catch (error) {
+          if (error.response?.status === 422) {
+            this.errors = error.response.data.errors;
+          } else {
+            console.error(error);
+          }
         }
-      }
-    },
+    }
+
   },
 };
 </script>
