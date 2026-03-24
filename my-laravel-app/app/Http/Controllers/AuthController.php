@@ -12,14 +12,15 @@ class AuthController extends Controller
         $credentials = $request->only('email', 'password');
 
         if (Auth::attempt($credentials)) {
-            $request->session()->regenerate(); // secure session
+            $request->session()->regenerate(); // important to prevent session fixation
             return response()->json([
-                'message' => 'Logged in successfully',
-                'user' => Auth::user(),
+                'message' => 'Logged in successfully', 
+                'user' => Auth::user()
             ]);
         }
 
-        return response()->json(['message' => 'Šis lietotājs nepastāv'], 401);
+        return response()->json(['message' => 'Invalid credentials'], 401);
+    
     }
 
     public function logout(Request $request)

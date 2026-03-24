@@ -24,13 +24,13 @@ Route::get('/login', function () {
 });
 
 // to expose csrf cookie if needed
-Route::get('/csrf-token', function () {
-    return ['csrf_token' => csrf_token()];
-});
+// Route::get('/csrf-token', function () {
+//     return ['csrf_token' => csrf_token()];
+// });
 
 
 Route::post('/register', [UserController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/logout', [AuthController::class, 'logout']);
 // Route::post('/logout', function () {
 //     Auth::logout();

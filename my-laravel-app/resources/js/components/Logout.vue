@@ -9,6 +9,7 @@ const logout = async () => {
   try {
     await axios.post("/logout");
     window.location.href = "/login"; // redirect after logout
+    console.log('Successfully logged out!')
   } catch (err) {
     console.error(err);
   }
