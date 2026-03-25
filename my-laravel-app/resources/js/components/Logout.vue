@@ -1,17 +1,28 @@
-<template>
-  <button @click="logout">Logout</button>
-</template>
-
 <script setup>
-import axios from "axios";
+// import axios from "../bootstrap.js";
+import { logout } from "../services/auth";
+const emit = defineEmits(["logged-out"]);
 
-const logout = async () => {
-  try {
-    await axios.post("/logout");
-    window.location.href = "/login"; // redirect after logout
-    console.log('Successfully logged out!')
-  } catch (err) {
-    console.error(err);
-  }
+
+const logoutUser = async () => {
+  // emit("logged-out");
+  await logout();
 };
+
+// const logout = async () => {
+//   try {
+//     await logout();
+//     // await axios.get("/sanctum/csrf-cookie");
+//     // await axios.post("/logout");
+//     // await fetchUser();
+//     // emit("logged-out"); // update App.vue state
+    
+//   } catch (err) {
+//     console.error(err);
+//   }
+// };
 </script>
+
+<template>
+  <button @click="logoutUser">Logout</button>
+</template>

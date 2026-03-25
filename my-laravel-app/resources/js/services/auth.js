@@ -1,5 +1,64 @@
-import api from './api';
+// // import api from './api';
 
-export async function initCsrf() {
-  await api.get('/sanctum/csrf-cookie');
-}
+// // export async function initCsrf() {
+// //   await api.get('/sanctum/csrf-cookie');
+// // }
+
+// // auth.js
+// import { ref } from "vue";
+// export const user = ref(null);
+
+// export const fetchUser = async () => {
+//   try {
+//     const res = await axios.get("/user");
+//     user.value = res.data;
+//   } catch {
+//     user.value = null;
+//   }
+// };
+
+import { ref } from "vue";
+import axios from "../bootstrap.js";
+
+// global reactive state
+export const user = ref(null);
+
+// fetch current user from Laravel
+export const fetchUser = async () => {
+  try {
+    const res = await axios.get("/user");
+    // Only assign if res.data has an id
+    user.value = res.data && res.data.id ? res.data : null;
+    console.log("Fetched user:", user.value);
+  } catch {
+    user.value = null;
+  }
+};
+
+export const register = async (form) => {
+  await axios.get("/sanctum/csrf-cookie");   
+  await axios.post("/register", form);       
+  await fetchUser();                        
+};
+// login
+export const login = async (form) => {
+  await axios.get("/sanctum/csrf-cookie");
+  await axios.post("/login", form);
+  await fetchUser(); // update global state
+};
+
+// logout
+export const logout = async () => {
+  try {
+    await axios.post("/logout");
+
+    // Immediately set user to null
+    user.value = null;
+
+    // Optional: fetch again to confirm
+    await fetchUser(); // fetchUser() will set user.value = null if logged out
+
+  } catch (err) {
+    console.error(err);
+  }
+};

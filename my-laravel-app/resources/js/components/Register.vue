@@ -138,54 +138,44 @@ export default {
 </template>
 
 <script>
-import axios from '../bootstrap.js'; // use the same bootstrap.js that sets withCredentials
+import { ref } from "vue";
+import { register } from "../services/auth";
 
 export default {
-  data() {
-    return {
-      form: {
-        name: "",
-        email: "",
-        password: "",
-        password_confirmation: "",
-      },
-      errors: {},
-      successMessage: "",
-    };
-  },
-  methods: {
-    async registerUser() {
-      this.errors = {};
-      this.successMessage = "";
+  setup() {
+    const form = ref({
+      name: "",
+      email: "",
+      password: "",
+      password_confirmation: "",
+    });
+
+    const errors = ref({});
+    const successMessage = ref("");
+
+    const registerUser = async () => {
+      errors.value = {};
+      successMessage.value = "";
 
       try {
-        // ✅ Step 1: get CSRF cookie
-        await axios.get('/sanctum/csrf-cookie');
-
-        // ✅ Step 2: send registration request
-        const response = await axios.post('/register', this.form);
-
-        this.successMessage = "Lietotājs veiksmīgi pievienots!";
-
-        // reset form
-        this.form = {
-          name: "",
-          email: "",
-          password: "",
-          password_confirmation: "",
-        };
-
+        await register(form.value);
+        successMessage.value = "Lietotājs veiksmīgi pievienots!";
+        form.value = { name: "", email: "", password: "", password_confirmation: "" };
+        window.location.href = "/";
       } catch (error) {
         if (error.response?.status === 422) {
-          this.errors = error.response.data.errors; // validation errors
+          errors.value = error.response.data.errors;
         } else {
           console.error(error);
         }
       }
-    },
+    };
+
+    return { form, errors, successMessage, registerUser };
   },
 };
 </script>
+
 
 <style scoped>
 .error {

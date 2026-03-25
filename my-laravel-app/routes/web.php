@@ -23,15 +23,15 @@ Route::get('/login', function () {
     return view('pages.login');
 });
 
-// to expose csrf cookie if needed
-// Route::get('/csrf-token', function () {
-//     return ['csrf_token' => csrf_token()];
-// });
-
 
 Route::post('/register', [UserController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login'])->name('login');
-Route::post('/logout', [AuthController::class, 'logout']);
+Route::middleware('web')->post('/logout', [AuthController::class, 'logout']);
+
+Route::middleware('web')->get('/user', [AuthController::class, 'user']);
+
+
+// Route::post('/logout', [AuthController::class, 'logout']);
 // Route::post('/logout', function () {
 //     Auth::logout();
 //     request()->session()->invalidate();
@@ -41,8 +41,4 @@ Route::post('/logout', [AuthController::class, 'logout']);
 // });
 
 
-Route::get('/user', [AuthController::class, 'user']); // Get current logged-in user
-
-// Route::middleware('web')->post('/login', [AuthController::class, 'login']);
-
-// Route::post('/logout', [UserController::class, 'logout']);
+// Route::get('/user', [AuthController::class, 'user']); // Get current logged-in user

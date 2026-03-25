@@ -11,35 +11,40 @@
   </div>
 </template>
 
-<script>
-import axios from '../bootstrap.js';
+<script setup>
+import { reactive, ref } from "vue";
+import { login } from "../services/auth";
 
-export default {
-  data() {
-    return {
-      form: { email: '', password: '' },
-      error: '',
-      successMessage: ''
-    };
-  },
-  methods: {
-    async loginUser() {
-      this.error = '';
-      this.successMessage = '';
+// Reactive form state
+const form = reactive({
+  email: "",
+  password: ""
+});
 
-      try {
-        // 1️⃣ Get CSRF cookie
-        await axios.get('/sanctum/csrf-cookie');
+const error = ref("");
+const successMessage = ref("");
 
-        // 2️⃣ Login
-        const res = await axios.post('/login', this.form);
+// Login method
+const loginUser = async () => {
+  error.value = "";
+  successMessage.value = "";
 
-        this.successMessage = 'Veiksmīgi pieslēdzāties!';
-        console.log(res.data);
-      } catch (err) {
-        this.error = err.response?.data?.message || 'Kļūda pieslēdzoties';
-      }
-    }
+  try {
+    // 1️⃣ Get CSRF cookie
+    // await axios.get("/sanctum/csrf-cookie");
+
+    // // 2️⃣ Login
+    // const res = await axios.post("/login", form);
+    // await fetchUser();
+    await login(form);
+    successMessage.value = "Veiksmīgi pieslēdzāties!";
+    console.log(res.data);
+
+    // Optional: redirect
+    window.location.href = "/";
+
+  } catch (err) {
+    error.value = err.response?.data?.message || "Kļūda pieslēdzoties";
   }
 };
 </script>

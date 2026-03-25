@@ -1,24 +1,22 @@
+<script setup>
+import { onMounted } from "vue";
+import { user, fetchUser, logout } from "../services/auth";
+// import Logout from "./Logout.vue";
+
+onMounted(fetchUser);
+</script>
+
 <template>
   <nav>
     <a href="/">Home</a>
     <a href="/about">About</a>
-    <a href="register">Register</a>
-    <a href="/login">Login</a>
-    <!-- <a href="/logout">Log out</a> -->
+
+    <a v-if="!user" href="/register">Register</a>
+    <a v-if="!user" href="/login">Login</a>
+
+    <button v-if="user" @click="logout">Logout</button>
+    <!-- <Logout v-if="user" /> -->
   </nav>
-  <div>
-    <Logout />
-    <router-view />
-  </div>
+
+  <router-view />
 </template>
-
-<!-- <script>
-  import Logout from './components/Logout.vue';
-
-  export default {
-    components: { Logout },
-  };
-</script> -->
-<script setup>
-  import Logout from "../components/Logout.vue";
-</script>
