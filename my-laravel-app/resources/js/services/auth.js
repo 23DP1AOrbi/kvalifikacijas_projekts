@@ -43,8 +43,9 @@ export const register = async (form) => {
 // login
 export const login = async (form) => {
   await axios.get("/sanctum/csrf-cookie");
-  await axios.post("/login", form);
-  await fetchUser(); // update global state
+  const res = await axios.post("/login", form);
+  await fetchUser();
+  return res;
 };
 
 // logout
@@ -57,7 +58,7 @@ export const logout = async () => {
 
     // Optional: fetch again to confirm
     await fetchUser(); // fetchUser() will set user.value = null if logged out
-
+    window.location.href = "/";
   } catch (err) {
     console.error(err);
   }

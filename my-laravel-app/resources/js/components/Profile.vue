@@ -1,7 +1,17 @@
 <template>
   <div class="register-form">
-    <h1>Reģistrācija</h1>
-    <form @submit.prevent="registerUser">
+    <h1>Profils</h1>
+    <div>
+
+        <p>Profila pārvalde</p>
+    </div>
+    <div>
+        <h2>Mani Projekti</h2>
+
+        <a href="#">Favorīti</a>
+        <a href="#">Nesenie</a>
+    </div>
+    <!-- <form @submit.prevent="registerUser">
       <div>
         <label for="name">Lietotājvārds</label>
         <input v-model="form.name" type="text" id="name" required />
@@ -27,7 +37,7 @@
 
       <button type="submit">Reģistrēties</button>
     </form>
-    <div v-if="successMessage" class="success">{{ successMessage }}</div>
+    <div v-if="successMessage" class="success">{{ successMessage }}</div> -->
   </div>
 </template>
 
