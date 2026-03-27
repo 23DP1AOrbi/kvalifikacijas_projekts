@@ -5,4 +5,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/dizaini', [DesignController::class, 'index']);
 Route::get('/dizaini/{id}', [DesignController::class, 'show']);
-Route::post('/dizaini', [DesignController::class, 'store']);
+
+
+Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+    Route::post('/dizaini', [DesignController::class, 'store']);
+});

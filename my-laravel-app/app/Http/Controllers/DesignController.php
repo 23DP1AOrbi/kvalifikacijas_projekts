@@ -21,6 +21,10 @@ class DesignController extends Controller
 
     public function store(Request $request)
     {
+        if ($request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+        
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'image' => 'required|file|mimes:svg',

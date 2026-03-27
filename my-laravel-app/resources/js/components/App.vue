@@ -14,7 +14,7 @@ onMounted(fetchUser);
     <router-link v-if="!user" to="/register">Register</router-link>
     <router-link v-if="!user" to="/login">Login</router-link>
 
-    <router-link v-if="user" to="/pievienot">Pievienot</router-link>
+    <router-link v-if="user?.role === 'admin'" to="/pievienot">Pievienot</router-link>
     <router-link v-if="user" to="/profils">Profils</router-link>
     <button v-if="user" @click="logout">Logout</button>
   </nav>

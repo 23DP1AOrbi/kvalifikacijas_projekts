@@ -3,6 +3,7 @@ import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import axios from "../bootstrap.js";
 
+// Vuetify components
 import { VContainer, VRow, VCol, VCard, VCardTitle, VCardText } from 'vuetify/components';
 
 const designs = ref([]);
@@ -43,15 +44,34 @@ onMounted(fetchDesigns);
         md="4"
         lg="3"
       >
-        <VCard class="pa-3 hoverable" @click="goToDesign(design.id)">
-          <VCardTitle>{{ design.name }}</VCardTitle>
+        <VCard
+          class="hoverable d-flex flex-column"
+          @click="goToDesign(design.id)"
+          style="background-color: #bdbdbd; height: 300px; padding: 8px;"
+        >
+          <!-- Name always visible -->
+          <VCardTitle class="text-center" style="flex-shrink: 0;">{{ design.name }}</VCardTitle>
 
-          <VCardText>
-            <!-- ✅ render SVG as file -->
-            <img :src="design.file_url" style="width:100%;" />
+          <!-- SVG container -->
+          <VCardText
+            class="d-flex align-center justify-center"
+            style="flex-grow: 1; overflow: hidden;"
+          >
+            <img
+              :src="design.file_url"
+              style="max-width: 100%; max-height: 100%; object-fit: contain;"
+              alt="Design SVG"
+            />
           </VCardText>
         </VCard>
       </VCol>
     </VRow>
   </VContainer>
 </template>
+
+<style scoped>
+.v-card.hoverable:hover {
+  transform: translateY(-5px);
+  transition: transform 0.2s ease-in-out;
+}
+</style>
