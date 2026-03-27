@@ -22,19 +22,25 @@ const onFileChange = (e) => {
 const uploadDesign = async () => {
   if (!file.value) return;
 
-  const formData = new FormData();
-  formData.append('name', name.value);
-  formData.append('image', file.value); // send file directly
+   // send file directly
 
   try {
-    const res = await axios.post('/api/dizaini', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    await axios.get("/sanctum/csrf-cookie");
+
+    const formData = new FormData();
+    formData.append('name', name.value);
+    formData.append('image', file.value);
+
+    // const res = await axios.post('/api/dizaini', formData, {
+    //   headers: { 'Content-Type': 'multipart/form-data' },
+    // });
+
+    const res = await axios.post('/dizaini', formData);
 
     alert('SVG uploaded successfully!');
     name.value = '';
     file.value = null;
-    console.log('Uploaded design:', res.data);
+    // console.log('Uploaded design:', res.data);
   } catch (err) {
     console.error('Upload failed:', err);
     alert('Upload failed: ' + (err.response?.data?.message || err.message));

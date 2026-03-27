@@ -7,6 +7,4 @@ Route::get('/dizaini', [DesignController::class, 'index']);
 Route::get('/dizaini/{id}', [DesignController::class, 'show']);
 
 
-Route::middleware(['auth:sanctum', 'admin'])->group(function () {
-    Route::post('/dizaini', [DesignController::class, 'store']);
-});
+// Route::middleware(['auth:sanctum', 'admin'])->post('/dizaini', [DesignController::class, 'store']);
