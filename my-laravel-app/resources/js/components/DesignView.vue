@@ -5,20 +5,41 @@
     <v-card v-if="svgContent">
       <v-card-title>{{ design?.name }}</v-card-title>
 
-      <!-- Color picker -->
-      <v-color-picker
-        v-model="selectedColor"
-        hide-inputs
-        flat
-        class="mb-4"
-      ></v-color-picker>
-
-      <v-btn @click="undo" class="mr-2">Undo</v-btn>
-      <v-btn @click="redo">Redo</v-btn>
-
       <v-card-text>
-        <!-- SVG injected -->
-        <div ref="svgContainer" v-html="svgContent" class="svg-large"></div>
+        <v-row>
+          <v-col cols="12" md="4">
+            <v-color-picker
+              v-model="selectedColor"
+              hide-inputs
+              flat
+              class="mb-4"
+            ></v-color-picker>
+
+            <div v-if="usedColors.length > 0" class="mb-4">
+              <div class="text-subtitle-2 mb-2 text-grey-darken-1">Recently Used</div>
+              <div class="d-flex flex-wrap gap-2">
+                <div
+                  v-for="color in usedColors"
+                  :key="color"
+                  class="color-swatch"
+                  :style="{ backgroundColor: color }"
+                  @click="selectedColor = color"
+                  :title="color"
+                ></div>
+              </div>
+            </div>
+
+            <v-divider class="mb-4"></v-divider>
+
+            <v-btn @click="undo" class="mr-2" :disabled="undoStack.length === 0">Undo</v-btn>
+            <v-btn @click="redo" class="mr-2" :disabled="redoStack.length === 0">Redo</v-btn>
+            <v-btn @click="reset" color="error" variant="tonal">Reset</v-btn>
+          </v-col>
+
+          <v-col cols="12" md="8" class="d-flex justify-center">
+            <div ref="svgContainer" v-html="svgContent" class="svg-large"></div>
+          </v-col>
+        </v-row>
       </v-card-text>
     </v-card>
 
@@ -37,6 +58,10 @@ const svgContent = ref('');
 const svgContainer = ref(null);
 
 const selectedColor = ref('#ff0000');
+
+// NEW: Color history state
+const usedColors = ref([]);
+const MAX_HISTORY = 12; // Keep the palette clean
 
 // Per-element color state
 const colors = ref({});
@@ -62,64 +87,7 @@ const getColorableElements = (svg) => {
   // Query for all shapes that can typically be colored
   return svg.querySelectorAll("path, circle, rect, ellipse, polygon, polyline");
 };
-// // Recursively find all paths/groups with id
-// const getColorableElements = (el) => {
-//   const elements = [];
-//   if (el.id) elements.push(el);
 
-//   el.childNodes.forEach(child => {
-//     if (child.nodeType === 1) { // element
-//       elements.push(...getColorableElements(child));
-//     }
-//   });
-
-//   return elements;
-// };
-
-// Setup SVG interactions
-// const setupSvgInteractions = async () => {
-//   await nextTick();
-//   const svg = svgContainer.value?.querySelector("svg");
-//   if (!svg) return;
-
-//   const elements = getColorableElements(svg);
-
-//   elements.forEach(el => {
-//     el.style.cursor = "pointer";
-
-//     // Apply saved color
-//     if (colors.value[el.id]) {
-//       el.setAttribute("fill", colors.value[el.id]);
-//     }
-
-//     // Hover highlight
-//     el.addEventListener("mouseenter", () => {
-//       el.dataset.originalStroke = el.getAttribute("stroke") || "";
-//       el.setAttribute("stroke", "#000");
-//       el.setAttribute("stroke-width", "1");
-//       el.setAttribute("opacity", "0.8")
-//     });
-
-//     el.addEventListener("mouseleave", () => {
-//       el.setAttribute("stroke", el.dataset.originalStroke);
-//       el.setAttribute("opacity",el.dataset.originalOpacity);
-//       el.removeAttribute("stroke-width");
-//     });
-
-//     // Click to change color
-//     el.addEventListener("click", () => {
-//       const prevColor = el.getAttribute("fill") || "#000000";
-//       const newColor = selectedColor.value;
-
-//       el.setAttribute("fill", newColor);
-//       colors.value[el.id] = newColor;
-
-//       // Push to undo stack
-//       undoStack.value.push({ id: el.id, prevColor, newColor });
-//       redoStack.value = []; // clear redo on new action
-//     });
-//   });
-// };
 const setupSvgInteractions = async () => {
   await nextTick();
   const svg = svgContainer.value?.querySelector("svg");
@@ -128,36 +96,48 @@ const setupSvgInteractions = async () => {
   const elements = getColorableElements(svg);
 
   elements.forEach((el, index) => {
-    // 1. Ensure element has a unique ID for state tracking
     if (!el.id) {
       el.id = `svg-shape-${index}`;
     }
 
-    el.style.cursor = "pointer";
-
-    // 2. Apply saved color if exists
-    if (colors.value[el.id]) {
-      el.setAttribute("fill", colors.value[el.id]);
+    // NEW: Save the absolute original fill for the Reset function
+    if (!el.dataset.originalFill) {
+      const currentFill = el.getAttribute("fill") || window.getComputedStyle(el).fill || "none";
+      el.dataset.originalFill = currentFill;
     }
 
-    // 3. Click handler
+    el.style.cursor = "pointer";
+
+    if (colors.value[el.id]) {
+      el.setAttribute("fill", colors.value[el.id]);
+      el.style.fill = colors.value[el.id]; // Ensure inline styles are also overridden
+    }
+
     el.onclick = (e) => {
-      e.stopPropagation(); // Prevent bubbling to parent groups
+      e.stopPropagation(); 
       
-      // Get current color (check computed style if attribute is missing)
       const prevColor = el.getAttribute("fill") || window.getComputedStyle(el).fill;
       const newColor = selectedColor.value;
 
+      // Don't log an undo action if the color didn't actually change
+      if (prevColor === newColor) return;
+
       el.setAttribute("fill", newColor);
-      el.style.fill = newColor; // Force style override
-      
+      el.style.fill = newColor; 
       colors.value[el.id] = newColor;
+
+      usedColors.value = usedColors.value.filter(c => c !== newColor);
+      usedColors.value.unshift(newColor); // Add to the start of the array
+      
+      // Enforce the limit
+      if (usedColors.value.length > MAX_HISTORY) {
+        usedColors.value.pop();
+      }
 
       undoStack.value.push({ id: el.id, prevColor, newColor });
       redoStack.value = [];
     };
 
-    // 4. Hover Effects
     el.onmouseenter = () => {
       el.dataset.originalOpacity = el.getAttribute("opacity") || "1";
       el.setAttribute("opacity", "0.7");
@@ -170,16 +150,18 @@ const setupSvgInteractions = async () => {
 
 // Undo last change
 const undo = () => {
+  if (undoStack.value.length === 0) return; // Nothing to undo
+  
   const action = undoStack.value.pop();
-  if (!action) return;
-
   const svg = svgContainer.value?.querySelector("svg");
   if (!svg) return;
 
-  const el = svg.querySelector(`#${action.id}`);
+  // Safer selector
+  const el = svg.querySelector(`[id="${action.id}"]`);
   if (!el) return;
 
   el.setAttribute("fill", action.prevColor);
+  el.style.fill = action.prevColor;
   colors.value[action.id] = action.prevColor;
 
   redoStack.value.push(action);
@@ -187,20 +169,76 @@ const undo = () => {
 
 // Redo last undone change
 const redo = () => {
+  if (redoStack.value.length === 0) return; // Nothing to redo
+  
   const action = redoStack.value.pop();
-  if (!action) return;
-
   const svg = svgContainer.value?.querySelector("svg");
   if (!svg) return;
 
-  const el = svg.querySelector(`#${action.id}`);
+  const el = svg.querySelector(`[id="${action.id}"]`);
   if (!el) return;
 
   el.setAttribute("fill", action.newColor);
+  el.style.fill = action.newColor;
   colors.value[action.id] = action.newColor;
 
   undoStack.value.push(action);
 };
+
+// Reset everything to original state
+const reset = () => {
+  const svg = svgContainer.value?.querySelector("svg");
+  if (!svg) return;
+
+  const elements = getColorableElements(svg);
+
+  elements.forEach(el => {
+    const origFill = el.dataset.originalFill;
+    if (origFill) {
+      el.setAttribute("fill", origFill);
+      el.style.fill = origFill; // Clear any inline styles we injected
+    }
+  });
+
+  // Wipe the tracking state clean
+  colors.value = {};
+  undoStack.value = [];
+  redoStack.value = [];
+};
+
+// Undo last change
+// const undo = () => {
+//   const action = undoStack.value.pop();
+//   if (!action) return;
+
+//   const svg = svgContainer.value?.querySelector("svg");
+//   if (!svg) return;
+
+//   const el = svg.querySelector(`#${action.id}`);
+//   if (!el) return;
+
+//   el.setAttribute("fill", action.prevColor);
+//   colors.value[action.id] = action.prevColor;
+
+//   redoStack.value.push(action);
+// };
+
+// // Redo last undone change
+// const redo = () => {
+//   const action = redoStack.value.pop();
+//   if (!action) return;
+
+//   const svg = svgContainer.value?.querySelector("svg");
+//   if (!svg) return;
+
+//   const el = svg.querySelector(`#${action.id}`);
+//   if (!el) return;
+
+//   el.setAttribute("fill", action.newColor);
+//   colors.value[action.id] = action.newColor;
+
+//   undoStack.value.push(action);
+// };
 
 watch(svgContent, async () => {
   if (svgContent.value) {
@@ -215,5 +253,25 @@ onMounted(fetchDesign);
 .svg-large svg {
   width: 100%;
   max-width: 500px;
+}
+
+/* New styles for the recent color swatches */
+.gap-2 {
+  gap: 8px;
+}
+
+.color-swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%; /* Makes them circles */
+  cursor: pointer;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.color-swatch:hover {
+  transform: scale(1.15);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 </style>
