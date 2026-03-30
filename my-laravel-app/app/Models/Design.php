@@ -13,4 +13,9 @@ class Design extends Model
         'name',
         'file_url', 
     ];
+
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class);
+    }
 }

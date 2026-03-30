@@ -8,6 +8,7 @@ import Profile from '../components/Profile.vue'
 import DesignGallery from '../components/DesignGallery.vue'
 import DesignView from '../components/DesignView.vue'
 import DesignUpload from '../components/DesignUpload.vue'
+import CategoryManager from '../components/CategoryManager.vue'
 
 
 
@@ -20,6 +21,7 @@ const routes = [
     { path: '/dizaini', component: DesignGallery},
     { path: '/dizaini/:id', component: DesignView, props: true},
     { path: '/pievienot', component: DesignUpload, meta: { requiresAdmin: true }},
+    { path: '/kategorijas', component: CategoryManager },
 
 ];
 
