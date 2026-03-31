@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 class CategoryController extends Controller
 {
     public function index() {
-        return Category::all();
+        return Category::withCount('designs')->get();
     }
 
     public function store(Request $request) {
@@ -16,8 +16,15 @@ class CategoryController extends Controller
         return response()->json($cat);
     }
 
-    public function destroy(Category $category) {
+    public function destroy(Category $category)
+    {
+        // 1. Remove all links to designs in the pivot table first
+        // This ensures designs aren't affected by the deletion
+        $category->designs()->detach();
+
+        // 2. Now delete the category itself
         $category->delete();
-        return response()->json(['message' => 'Deleted']);
+
+        return response()->json(['message' => 'Category removed successfully']);
     }
 }

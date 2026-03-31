@@ -62,4 +62,19 @@ class DesignController extends Controller
 
         return response()->json($design);
     }
+
+    public function destroy($id)
+    {
+        $design = Design::findOrFail($id);
+
+        // 1. Delete the physical file from storage
+        if (Storage::disk('public')->exists($design->file_url)) {
+            Storage::disk('public')->delete($design->file_url);
+        }
+
+        // 2. Delete the database record (this also removes pivot table links)
+        $design->delete();
+
+        return response()->json(['message' => 'Design deleted successfully']);
+    }
 }

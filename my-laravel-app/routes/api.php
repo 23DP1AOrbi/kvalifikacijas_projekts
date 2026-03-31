@@ -2,11 +2,13 @@
 
 use App\Http\Controllers\DesignController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CategoryController;
+
 
 Route::get('/dizaini', [DesignController::class, 'index']);
 Route::get('/dizaini/{id}', [DesignController::class, 'show']);
+Route::delete('/dizaini/{id}', [DesignController::class, 'destroy']);
 
-use App\Http\Controllers\CategoryController;
 
 // This allows Vue to fetch all categories and add new ones
 Route::get('/categories', [CategoryController::class, 'index']);

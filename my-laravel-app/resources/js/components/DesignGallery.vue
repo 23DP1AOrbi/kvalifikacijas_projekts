@@ -1,23 +1,26 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
+// Ensure this import points to the reactive 'user' ref in your auth service
+import { user } from "../services/auth"; 
 import axios from "../bootstrap.js";
 
 // Vuetify components
-import { VContainer, VRow, VCol, VCard, VCardTitle, VCardText, VTextField, VSelect, VChip } from 'vuetify/components';
+import { 
+  VContainer, VRow, VCol, VCard, VCardTitle, VCardText, 
+  VTextField, VSelect, VBtn, VIcon 
+} from 'vuetify/components';
 
 const designs = ref([]);
-const categories = ref([]); // To store available categories for the dropdown
+const categories = ref([]);
 const loading = ref(true);
 const router = useRouter();
 
-// Filter States
 const searchQuery = ref("");
 const selectedCategory = ref(null);
 
 const fetchData = async () => {
   try {
-    // Fetch both designs and categories
     const [designRes, catRes] = await Promise.all([
       axios.get("/api/dizaini"),
       axios.get("/api/categories")
@@ -31,21 +34,31 @@ const fetchData = async () => {
   }
 };
 
-// COMPUTED FILTERING LOGIC
 const filteredDesigns = computed(() => {
   return designs.value.filter((design) => {
-    // Match Name
     const matchesName = design.name
       .toLowerCase()
       .includes(searchQuery.value.toLowerCase());
 
-    // Match Category (Checks if design has the selected category ID in its categories array)
     const matchesCategory = !selectedCategory.value || 
-      design.categories.some(cat => cat.id === selectedCategory.value);
+      (design.categories && design.categories.some(cat => cat.id === selectedCategory.value));
 
     return matchesName && matchesCategory;
   });
 });
+
+const deleteDesign = async (id) => {
+  if (!confirm("Are you sure you want to delete this design?")) return;
+
+  try {
+    // Note: ensure this route exists in your routes/api.php
+    await axios.delete(`/api/dizaini/${id}`);
+    designs.value = designs.value.filter(d => d.id !== id);
+  } catch (err) {
+    console.error("Delete failed:", err);
+    alert("Could not delete design.");
+  }
+};
 
 const goToDesign = (id) => {
   router.push(`/dizaini/${id}`);
@@ -96,23 +109,23 @@ onMounted(fetchData);
         <VCard
           class="hoverable d-flex flex-column"
           @click="goToDesign(design.id)"
-          style="background-color: #bdbdbd; height: 350px; padding: 8px;"
+          style="background-color: #bdbdbd; height: 350px; padding: 8px; position: relative;"
         >
-          <VCardTitle class="text-center" style="flex-shrink: 0;">{{ design.name }}</VCardTitle>
-          
-          <div class="px-2 pb-2 d-flex flex-wrap justify-center" style="gap: 4px;">
-            <VChip 
-              v-for="cat in design.categories" 
-              :key="cat.id" 
-              size="x-small" 
-              color="primary"
-            >
-              {{ cat.name }}
-            </VChip>
+          <div v-if="user?.role === 'admin'" style="position: absolute; top: 8px; right: 8px; z-index: 20;">
+            <v-btn
+              icon="mdi-delete"
+              color="white"
+              class="text-error"
+              elevation="4"
+              size="small"
+              @click.stop="deleteDesign(design.id)"
+            ></v-btn>
           </div>
 
+          <VCardTitle class="text-center">{{ design.name }}</VCardTitle>
+
           <VCardText
-            class="d-flex align-center justify-center bg-white rounded"
+            class="d-flex align-center justify-center bg-white rounded mt-2"
             style="flex-grow: 1; overflow: hidden;"
           >
             <img

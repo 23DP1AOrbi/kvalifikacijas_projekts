@@ -6,6 +6,7 @@ import vuetify from './plugins/vuetify'
 import "./bootstrap"
 import axios from "axios"
 import { fetchUser } from './services/auth'
+import '@mdi/font/css/materialdesignicons.css'
 
 
 axios.defaults.baseURL = "http://localhost:8000"

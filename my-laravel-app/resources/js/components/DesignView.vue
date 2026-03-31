@@ -76,10 +76,23 @@ const fetchDesign = async () => {
     const res = await axios.get(`/api/dizaini/${route.params.id}`);
     design.value = res.data;
 
-    const svgRes = await axios.get(design.value.file_url);
-    svgContent.value = svgRes.data;
+    // Use a cache-buster or ensure the URL is clean
+    const svgRes = await axios.get(design.value.file_url, {
+      responseType: 'text' // Force text response
+    });
+
+    let rawSvg = svgRes.data;
+
+    // CLEANUP: If the file contains <?xml ... ?> or <!DOCTYPE ... ?>, 
+    // it can break v-html injection. We only want the <svg>...</svg> part.
+    const svgStartIndex = rawSvg.indexOf('<svg');
+    if (svgStartIndex !== -1) {
+      rawSvg = rawSvg.substring(svgStartIndex);
+    }
+
+    svgContent.value = rawSvg;
   } catch (err) {
-    console.error(err);
+    console.error("Fetch Error:", err);
   }
 };
 
@@ -206,40 +219,6 @@ const reset = () => {
   redoStack.value = [];
 };
 
-// Undo last change
-// const undo = () => {
-//   const action = undoStack.value.pop();
-//   if (!action) return;
-
-//   const svg = svgContainer.value?.querySelector("svg");
-//   if (!svg) return;
-
-//   const el = svg.querySelector(`#${action.id}`);
-//   if (!el) return;
-
-//   el.setAttribute("fill", action.prevColor);
-//   colors.value[action.id] = action.prevColor;
-
-//   redoStack.value.push(action);
-// };
-
-// // Redo last undone change
-// const redo = () => {
-//   const action = redoStack.value.pop();
-//   if (!action) return;
-
-//   const svg = svgContainer.value?.querySelector("svg");
-//   if (!svg) return;
-
-//   const el = svg.querySelector(`#${action.id}`);
-//   if (!el) return;
-
-//   el.setAttribute("fill", action.newColor);
-//   colors.value[action.id] = action.newColor;
-
-//   undoStack.value.push(action);
-// };
-
 watch(svgContent, async () => {
   if (svgContent.value) {
     await setupSvgInteractions();
@@ -273,5 +252,20 @@ onMounted(fetchDesign);
 .color-swatch:hover {
   transform: scale(1.15);
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Ensure the injected SVG fills the space */
+/* :deep(.svg-large svg) {
+  width: 100% !important;
+  height: auto !important;
+  display: block;
+  max-height: 500px;
+} */
+
+/* Add this to help debug if the SVG is empty */
+.svg-large {
+  min-height: 200px;
+  border: 1px dashed rgba(0,0,0,0.05);
+  width: 100%;
 }
 </style>
