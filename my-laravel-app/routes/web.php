@@ -9,15 +9,16 @@ use Illuminate\Support\Facades\Route;
 
 
 
+
 Route::post('/register', [UserController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::middleware('web')->post('/logout', [AuthController::class, 'logout']);
 Route::middleware('web')->get('/user', [AuthController::class, 'user']);
 
-// Route::middleware(['auth:sanctum', 'admin'])->group(function () {
-//     Route::post('/dizaini', [DesignController::class, 'store']);
-// });
-Route::get('/user', [AuthController::class, 'user'])->middleware('auth:sanctum');
+
+// Route::get('/user', [AuthController::class, 'user'])->middleware('auth:sanctum');
+
+
 
 Route::post('/dizaini', [DesignController::class, 'store'])
     ->middleware(['auth:sanctum', AdminMiddleware::class]);

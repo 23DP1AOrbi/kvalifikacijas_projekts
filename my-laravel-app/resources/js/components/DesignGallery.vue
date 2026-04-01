@@ -1,15 +1,8 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
-// Ensure this import points to the reactive 'user' ref in your auth service
 import { user } from "../services/auth"; 
 import axios from "../bootstrap.js";
-
-// Vuetify components
-import { 
-  VContainer, VRow, VCol, VCard, VCardTitle, VCardText, 
-  VTextField, VSelect, VBtn, VIcon 
-} from 'vuetify/components';
 
 const designs = ref([]);
 const categories = ref([]);
@@ -17,7 +10,8 @@ const loading = ref(true);
 const router = useRouter();
 
 const searchQuery = ref("");
-const selectedCategory = ref(null);
+// Changed to an empty array for multiple selection
+const selectedCategories = ref([]); 
 
 const fetchData = async () => {
   try {
@@ -35,33 +29,48 @@ const fetchData = async () => {
 };
 
 const filteredDesigns = computed(() => {
-  return designs.value.filter((design) => {
+  let filtered = designs.value.filter((design) => {
+    // 1. Filter by Name
     const matchesName = design.name
       .toLowerCase()
       .includes(searchQuery.value.toLowerCase());
 
-    const matchesCategory = !selectedCategory.value || 
-      (design.categories && design.categories.some(cat => cat.id === selectedCategory.value));
+    // 2. Filter by Category (OR logic: show if at least one category matches)
+    const matchesCategory = 
+      selectedCategories.value.length === 0 || 
+      (design.categories && design.categories.some(cat => selectedCategories.value.includes(cat.id)));
 
     return matchesName && matchesCategory;
   });
+
+  // 3. Rank by relevance (The more matching categories, the higher it appears)
+  if (selectedCategories.value.length > 0) {
+    return filtered.slice().sort((a, b) => {
+      const aMatches = a.categories?.filter(c => selectedCategories.value.includes(c.id)).length || 0;
+      const bMatches = b.categories?.filter(c => selectedCategories.value.includes(c.id)).length || 0;
+      return bMatches - aMatches; // Descending order
+    });
+  }
+
+  return filtered;
 });
 
-const deleteDesign = async (id) => {
-  if (!confirm("Are you sure you want to delete this design?")) return;
-
-  try {
-    // Note: ensure this route exists in your routes/api.php
-    await axios.delete(`/api/dizaini/${id}`);
-    designs.value = designs.value.filter(d => d.id !== id);
-  } catch (err) {
-    console.error("Delete failed:", err);
-    alert("Could not delete design.");
-  }
-};
+// const deleteDesign = async (id) => {
+//   if (!confirm("Are you sure?")) return;
+//   try {
+//     await axios.delete(`/api/dizaini/${id}`);
+//     designs.value = designs.value.filter(d => d.id !== id);
+//   } catch (err) {
+//     console.error(err);
+//   }
+// };
 
 const goToDesign = (id) => {
-  router.push(`/dizaini/${id}`);
+  if (user.value?.role === 'admin') {
+    router.push(`/dizaini/${id}/edit`);
+  } else {
+    router.push(`/dizaini/${id}`);
+  }
 };
 
 onMounted(fetchData);
@@ -75,7 +84,7 @@ onMounted(fetchData);
       <VCol cols="12" md="6">
         <VTextField
           v-model="searchQuery"
-          label="Search by name..."
+          label="Meklēt pēc nosaukuma..."
           prepend-inner-icon="mdi-magnify"
           clearable
           hide-details
@@ -83,19 +92,22 @@ onMounted(fetchData);
       </VCol>
       <VCol cols="12" md="6">
         <VSelect
-          v-model="selectedCategory"
+          v-model="selectedCategories"
           :items="categories"
           item-title="name"
           item-value="id"
-          label="Filter by Category"
+          label="Filtrēt pēc kategorijām"
+          multiple
+          chips
+          closable-chips
           clearable
           hide-details
         />
       </VCol>
     </VRow>
 
-    <div v-if="loading">Loading...</div>
-    <div v-else-if="filteredDesigns.length === 0">No designs match your criteria.</div>
+    <div v-if="loading">Ielādē...</div>
+    <div v-else-if="filteredDesigns.length === 0">Nekas netika atrasts.</div>
 
     <VRow v-else>
       <VCol
@@ -107,30 +119,26 @@ onMounted(fetchData);
         lg="3"
       >
         <VCard
-          class="hoverable d-flex flex-column"
+          class="design-card d-flex flex-column"
           @click="goToDesign(design.id)"
-          style="background-color: #bdbdbd; height: 350px; padding: 8px; position: relative;"
         >
-          <div v-if="user?.role === 'admin'" style="position: absolute; top: 8px; right: 8px; z-index: 20;">
+          <!-- <div v-if="user?.role === 'admin'" class="admin-actions">
             <v-btn
               icon="mdi-delete"
               color="white"
+              variant="flat"
               class="text-error"
-              elevation="4"
               size="small"
               @click.stop="deleteDesign(design.id)"
             ></v-btn>
-          </div>
+          </div> -->
 
           <VCardTitle class="text-center">{{ design.name }}</VCardTitle>
 
-          <VCardText
-            class="d-flex align-center justify-center bg-white rounded mt-2"
-            style="flex-grow: 1; overflow: hidden;"
-          >
+          <VCardText class="preview-container">
             <img
               :src="design.file_url"
-              style="max-width: 100%; max-height: 100%; object-fit: contain;"
+              class="design-img"
               alt="Design SVG"
             />
           </VCardText>
@@ -139,3 +147,44 @@ onMounted(fetchData);
     </VRow>
   </VContainer>
 </template>
+
+<style scoped>
+.design-card {
+  background-color: #bdbdbd !important; /* Base gray */
+  height: 350px;
+  padding: 8px;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+/* On hover, we change the opacity of the background color only */
+.design-card:hover {
+  background-color: rgba(189, 189, 189, 0.4) !important; 
+  transform: translateY(-4px);
+}
+
+.preview-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white; /* Keeps the SVG area clean */
+  border-radius: 4px;
+  margin-top: 8px;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.design-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.admin-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 20;
+}
+</style>

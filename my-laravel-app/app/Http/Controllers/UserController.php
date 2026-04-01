@@ -33,4 +33,28 @@ class UserController extends Controller
             'data' => $user,
         ], 201);
     }
+
+    public function update(Request $request)
+    {
+        $user = $request->user();
+
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'password' => 'nullable|min:8|confirmed',
+        ]);
+
+        $user->fill([
+            'name' => $data['name'],
+            'email' => $data['email'],
+        ]);
+
+        if (!empty($data['password'])) {
+            $user->password = Hash::make($data['password']);
+        }
+
+        $user->save();
+
+        return response()->json($user);
+    }
 }

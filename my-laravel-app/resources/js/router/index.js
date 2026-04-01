@@ -9,6 +9,7 @@ import DesignGallery from '../components/DesignGallery.vue'
 import DesignView from '../components/DesignView.vue'
 import DesignUpload from '../components/DesignUpload.vue'
 import CategoryManager from '../components/CategoryManager.vue'
+import DesignEdit from '../components/DesignEdit.vue'
 
 
 
@@ -22,6 +23,7 @@ const routes = [
     { path: '/dizaini/:id', component: DesignView, props: true},
     { path: '/pievienot', component: DesignUpload, meta: { requiresAdmin: true }},
     { path: '/kategorijas', component: CategoryManager },
+    { path: '/dizaini/:id/edit', component: DesignEdit },
 
 ];
 
@@ -31,11 +33,6 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-
-    // console.log("User in guard: ", user.value);
-    // console.log("Route meta:", to.meta);
-    // console.log("Navigating to: ", to.path);
-    // console.log("User role", user.value?.role);
 
   if (to.meta.requiresAdmin && user.value?.role !== 'admin') {
     return next('/'); // redirect to home

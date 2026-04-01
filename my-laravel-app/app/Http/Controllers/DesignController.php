@@ -77,4 +77,29 @@ class DesignController extends Controller
 
         return response()->json(['message' => 'Design deleted successfully']);
     }
+
+    public function update(Request $request, Design $design)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $design->update($data);
+
+        return response()->json($design);
+    }
+
+    public function syncCategories(Request $request, Design $design)
+    {
+        // Validate that category_ids is an array of existing IDs
+        $data = $request->validate([
+            'category_ids' => 'array',
+            'category_ids.*' => 'exists:categories,id'
+        ]);
+
+        // Use sync() to add/remove associations in the pivot table automatically
+        $design->categories()->sync($data['category_ids'] ?? []);
+
+        return response()->json(['message' => 'Categories synced successfully']);
+    }
 }

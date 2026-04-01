@@ -1,72 +1,29 @@
-<!-- <template>
-  <div>
-    <form @submit.prevent="uploadDesign">
-      <input type="text" v-model="name" placeholder="Design Name" required />
-      <input type="file" @change="onFileChange" accept=".svg" required />
-      <button type="submit">Upload</button>
-    </form>
-  </div>
-</template>
-
-<script setup>
-import { ref } from 'vue';
-import axios from '../bootstrap.js';
-
-const name = ref('');
-const file = ref(null);
-
-const onFileChange = (e) => {
-  file.value = e.target.files[0];
-};
-
-const uploadDesign = async () => {
-  if (!file.value) return;
-
-   // send file directly
-
-  try {
-    await axios.get("/sanctum/csrf-cookie");
-
-    const formData = new FormData();
-    formData.append('name', name.value);
-    formData.append('image', file.value);
-
-    // const res = await axios.post('/api/dizaini', formData, {
-    //   headers: { 'Content-Type': 'multipart/form-data' },
-    // });
-
-    const res = await axios.post('/dizaini', formData);
-
-    alert('SVG uploaded successfully!');
-    name.value = '';
-    file.value = null;
-    // console.log('Uploaded design:', res.data);
-  } catch (err) {
-    console.error('Upload failed:', err);
-    alert('Upload failed: ' + (err.response?.data?.message || err.message));
-  }
-};
-</script> -->
-
 <template>
   <v-container>
     <v-card class="pa-6" max-width="600">
-      <v-card-title>Upload New Design</v-card-title>
+      <v-card-title>Augšupielādēt Jaunu Dizainu</v-card-title>
       
       <v-form @submit.prevent="uploadDesign">
         <div v-if="previewUrl" class="preview-box mb-4">
-          <p class="text-caption">Preview:</p>
+          <p class="text-caption">Priekšskatījums:</p>
           <div v-html="previewUrl" class="svg-preview"></div>
         </div>
 
-        <v-text-field v-model="name" label="Design Name" required />
+        <v-text-field 
+          v-model="name" 
+          label="Dizaina Nosaukums" 
+          required 
+        />
 
         <v-file-input
-          label="Choose SVG File"
+          label="Izvēlēties SVG Failu"
           accept=".svg"
           prepend-icon="mdi-svg"
           @change="onFileChange"
+          @click:clear="clearFile"
           required
+          persistent-hint
+          hint="Tikai .svg faili"
         />
 
         <v-select
@@ -74,15 +31,23 @@ const uploadDesign = async () => {
           :items="categories"
           item-title="name"
           item-value="id"
-          label="Select Categories"
+          label="Izvēlēties Kategorijas"
           multiple
           chips
-          hint="Select as many as apply"
+          hint="Izvēlieties tik daudz, cik piemērojams"
           persistent-hint
           class="mt-4"
         />
 
-        <v-btn type="submit" color="success" block class="mt-6">Upload Design</v-btn>
+        <v-btn 
+          type="submit" 
+          color="success" 
+          block 
+          class="mt-6"
+          :disabled="!file || !name"
+        >
+          Augšupielādēt Dizainu
+        </v-btn>
       </v-form>
     </v-card>
   </v-container>
@@ -99,46 +64,82 @@ const categories = ref([]);
 const selectedCategories = ref([]);
 
 onMounted(async () => {
-  const res = await axios.get('/api/categories');
-  categories.value = res.data;
+  try {
+    const res = await axios.get('/api/categories');
+    categories.value = res.data;
+  } catch (err) {
+    console.error("Neizdevās ielādēt kategorijas", err);
+  }
 });
+
+const clearFile = () => {
+  file.value = null;
+  previewUrl.value = '';
+};
 
 const onFileChange = (e) => {
   const selectedFile = e.target.files[0];
-  if (!selectedFile) return;
   
+  if (!selectedFile) {
+    clearFile();
+    return;
+  }
+
+  // Strict Validation
+  const isSvg = selectedFile.type === 'image/svg+xml' || selectedFile.name.toLowerCase().endsWith('.svg');
+  
+  if (!isSvg) {
+    alert('Kļūda: Lūdzu, izvēlieties derīgu SVG failu!');
+    e.target.value = ""; // Clears the actual input DOM element
+    clearFile();
+    return;
+  }
+
   file.value = selectedFile;
 
   // Generate Preview
   const reader = new FileReader();
   reader.onload = (f) => {
-    previewUrl.value = f.target.result; // For SVGs, we can inject the text directly
+    // Basic security: ensure the result looks like an SVG tag
+    if (f.target.result.includes('<svg')) {
+      previewUrl.value = f.target.result;
+    } else {
+      alert("Fails nav derīgs SVG saturs.");
+      clearFile();
+    }
   };
   reader.readAsText(selectedFile);
 };
 
 const uploadDesign = async () => {
-  if (!file.value) return;
+  if (!file.value || !name.value) {
+    alert('Lūdzu, aizpildiet visus laukus!');
+    return;
+  }
 
   const formData = new FormData();
   formData.append('name', name.value);
   formData.append('image', file.value);
   
-  // Laravel expects array inputs as category_ids[]
   selectedCategories.value.forEach(id => {
     formData.append('category_ids[]', id);
   });
 
   try {
     await axios.post('/dizaini', formData);
-    alert('SVG uploaded successfully!');
+    alert('SVG augšupielādēts veiksmīgi!');
+    
     // Reset form
     name.value = '';
-    file.value = null;
-    previewUrl.value = '';
+    clearFile();
     selectedCategories.value = [];
   } catch (err) {
-    alert('Upload failed');
+    if (err.response?.status === 422) {
+      console.table(err.response.data.errors);
+      alert('Servera validācijas kļūda. Pārbaudiet datus.');
+    } else {
+      alert('Augšupielāde neizdevās.');
+    }
   }
 };
 </script>
@@ -151,10 +152,13 @@ const uploadDesign = async () => {
   flex-direction: column;
   align-items: center;
   background: #f9f9f9;
+  min-height: 100px;
 }
+/* Ensure the injected SVG behaves within the box */
 .svg-preview :deep(svg) {
-  max-width: 150px;
-  max-height: 150px;
+  max-width: 100%;
+  max-height: 200px;
+  width: auto;
   height: auto;
 }
 </style>

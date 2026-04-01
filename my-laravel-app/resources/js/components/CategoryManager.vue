@@ -1,12 +1,12 @@
 <template>
   <v-container class="text-center">
-    <h3 class="mb-4">Manage Categories</h3>
+    <h3 class="mb-4">Pārvaldīt Kategorijas</h3>
     
     <v-row justify="center" class="mb-4">
       <v-col cols="12" sm="8" md="6">
         <v-text-field 
           v-model="searchQuery" 
-          label="Search Categories..." 
+          label="Meklēt kategorijas..." 
           variant="underlined"
           prepend-inner-icon="mdi-magnify"
           clearable
@@ -16,12 +16,12 @@
         <v-form @submit.prevent="addCategory" class="d-flex gap-2">
           <v-text-field 
             v-model="newCategory" 
-            label="New Category Name" 
+            label="Jaunas Kategorijas Nosaukums" 
             variant="outlined"
             density="compact" 
             hide-details
           />
-          <v-btn type="submit" color="primary" height="40">Add</v-btn>
+          <v-btn type="submit" color="primary" height="40">Pievienot</v-btn>
         </v-form>
       </v-col>
     </v-row>
@@ -48,29 +48,38 @@
           size="small" 
           icon="mdi-close-circle" 
           class="delete-icon"
-          @click="deleteCategory(cat.id)"
+          @click="openDeleteModal(cat)"
         ></v-icon>
       </v-chip>
       
       <p v-if="filteredCategories.length === 0" class="text-grey italic">
-        No categories found matching "{{ searchQuery }}"
+        Netika atrasta neviena kategorija: "{{ searchQuery }}"
       </p>
     </div>
+
+    <ConfirmAlert
+      ref="confirmAlert" 
+      :item-name="categoryToDelete?.name" 
+      @confirm="executeDelete" 
+    />
   </v-container>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import axios from '../bootstrap.js';
+import ConfirmAlert from './ConfirmAlert.vue';
 
 const categories = ref([]);
 const newCategory = ref('');
 const searchQuery = ref('');
 
-// Filtered categories computed property
+// Logic for the Modal
+const confirmAlert = ref(null);
+const categoryToDelete = ref(null);
+
 const filteredCategories = computed(() => {
   if (!searchQuery.value) return categories.value;
-  
   const query = searchQuery.value.toLowerCase();
   return categories.value.filter(cat => 
     cat.name.toLowerCase().includes(query)
@@ -87,19 +96,31 @@ const addCategory = async () => {
   try {
     await axios.post('/api/categories', { name: newCategory.value });
     newCategory.value = '';
-    searchQuery.value = ''; // Optional: clear search to show the new item
     fetchCategories(); 
   } catch (err) {
     console.error(err);
   }
 };
 
-const deleteCategory = async (id) => {
-  if (!confirm("Are you sure? This will remove the category from all designs.")) return;
-  
+/**
+ * 1. Store the category object in a ref so the modal knows the name/id
+ * 2. Open the modal
+ */
+const openDeleteModal = (category) => {
+  categoryToDelete.value = category;
+  confirmAlert.value.open();
+};
+
+/**
+ * 3. Run this ONLY after the user clicks "Dzēst" in the modal
+ */
+const executeDelete = async () => {
+  if (!categoryToDelete.value) return;
+
   try {
-    await axios.delete(`/api/categories/${id}`);
+    await axios.delete(`/api/categories/${categoryToDelete.value.id}`);
     fetchCategories(); 
+    categoryToDelete.value = null; // Reset
   } catch (err) {
     console.error("Delete failed", err);
   }
