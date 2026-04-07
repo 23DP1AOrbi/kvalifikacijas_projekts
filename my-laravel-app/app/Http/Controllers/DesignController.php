@@ -78,8 +78,12 @@ class DesignController extends Controller
         return response()->json(['message' => 'Design deleted successfully']);
     }
 
-    public function update(Request $request, Design $design)
+    public function update(Request $request, $id)
     {
+        $user = $request->user(); 
+
+        $design = Design::findOrFail($id);
+
         $data = $request->validate([
             'name' => 'required|string|max:255',
         ]);

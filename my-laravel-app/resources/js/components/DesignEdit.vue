@@ -79,13 +79,25 @@ const fetchDesign = async () => {
 };
 
 const updateDesignName = async () => {
+
   if (!editName.value || editName.value === design.value.name) return;
   savingName.value = true;
   try {
-    await axios.patch(`/api/dizaini/${design.value.id}`, { name: editName.value });
+    // await axios.get("/sanctum/csrf-cookie");
+
+   const res = await axios.post(`/api/dizaini/${design.value.id}`, { 
+      name: editName.value,
+      _method: 'PATCH' // Laravel recognizes this as a PATCH request
+    });
+
     design.value.name = editName.value;
     alert('Nosaukums atjaunots!');
   } catch (err) {
+    if (err.response?.status === 401) {
+      console.error("401: Session lost. Try logging out and back in.");
+    } else if (err.response?.status === 403) {
+      console.error("403: You are logged in, but you are not an ADMIN.");
+    }
     console.error(err);
   } finally {
     savingName.value = false;

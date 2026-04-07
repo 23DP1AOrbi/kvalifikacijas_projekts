@@ -126,7 +126,7 @@ const uploadDesign = async () => {
   });
 
   try {
-    await axios.post('/dizaini', formData);
+    await axios.post('/api/dizaini', formData);
     alert('SVG augšupielādēts veiksmīgi!');
     
     // Reset form

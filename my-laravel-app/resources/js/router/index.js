@@ -22,8 +22,8 @@ const routes = [
     { path: '/dizaini', component: DesignGallery},
     { path: '/dizaini/:id', component: DesignView, props: true},
     { path: '/pievienot', component: DesignUpload, meta: { requiresAdmin: true }},
-    { path: '/kategorijas', component: CategoryManager },
-    { path: '/dizaini/:id/edit', component: DesignEdit },
+    { path: '/kategorijas', component: CategoryManager, meta: { requiresAdmin: true } },
+    { path: '/dizaini/:id/edit', component: DesignEdit, meta: { requiresAdmin: true } },
 
 ];
 
@@ -32,13 +32,18 @@ const router = createRouter({
     routes,
 });
 
-router.beforeEach((to, from, next) => {
-
-  if (to.meta.requiresAdmin && user.value?.role !== 'admin') {
-    return next('/'); // redirect to home
+router.beforeEach(async (to, from, next) => {
+  if (to.meta.requiresAdmin) {
+    // The user ref is already populated by initApp
+    if (user.value && user.value.role === 'admin') {
+      next();
+    } else {
+      console.warn("User is not admin or not logged in");
+      next('/login'); 
+    }
+  } else {
+    next();
   }
-
-  next();
 });
 
 export default router;
