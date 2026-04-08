@@ -12,7 +12,6 @@ import CategoryManager from '../components/CategoryManager.vue'
 import DesignEdit from '../components/DesignEdit.vue'
 
 
-
 const routes = [
     { path: '/', component: Home },
     { path: '/about', component: About },
@@ -34,7 +33,7 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   if (to.meta.requiresAdmin) {
-    // The user ref is already populated by initApp
+
     if (user.value && user.value.role === 'admin') {
       next();
     } else {

@@ -1,19 +1,19 @@
 <template>
-  <v-container>
+  <v-container fluid style="max-width: 1600px;">
     <v-btn @click="$router.back()" prepend-icon="mdi-arrow-left" variant="text" class="mb-4">Atpakaļ</v-btn>
 
     <v-card v-if="svgContent" elevation="2">
-      <v-card-title class="pa-4">{{ design?.name }}</v-card-title>
-
+      <v-card-title class="pa-4">
+        {{ route.query.project ? 'Rediģēt projektu: ' : '' }}{{ design?.name }}
+      </v-card-title>
       <v-card-text>
         <v-row>
-          <v-col cols="12" md="4">
-            <v-divider class="my-6"></v-divider>
-
+          <v-col cols="12" md="3">
             <DesignCategoryManager 
               v-if="user?.role === 'admin'" 
               :design-id="design.id" 
               :initial-categories="design.categories" 
+              class="mb-4"
             />
 
             <v-color-picker
@@ -22,6 +22,7 @@
               flat
               show-swatches
               class="mb-4"
+              width="100%"
             ></v-color-picker>
 
             <div v-if="usedColors.length > 0" class="mb-4">
@@ -40,7 +41,7 @@
 
             <v-divider class="mb-4"></v-divider>
 
-            <div class="d-flex justify-space-between align-center">
+            <div class="d-flex justify-space-between align-center mb-6">
               <div>
                 <v-btn 
                   icon="mdi-undo" 
@@ -49,7 +50,6 @@
                   :disabled="undoStack.length === 0"
                   variant="tonal"
                   density="comfortable"
-                  title="Atsaukt"
                 ></v-btn>
                 <v-btn 
                   icon="mdi-redo" 
@@ -57,7 +57,6 @@
                   :disabled="redoStack.length === 0"
                   variant="tonal"
                   density="comfortable"
-                  title="Atkārtot"
                 ></v-btn>
               </div>
               
@@ -67,12 +66,28 @@
                 color="error" 
                 variant="tonal"
                 density="comfortable"
-                title="Atsākt"
               ></v-btn>
+            </div>
+
+            <v-divider class="my-4"></v-divider>
+
+            <v-btn 
+              block 
+              color="primary" 
+              prepend-icon="mdi(content-save)" 
+              @click="saveProject"
+              :loading="isSaving"
+              :disabled="!user"
+              size="large"
+            >
+              Saglabāt kā projektu
+            </v-btn>
+            <div v-if="!user" class="text-caption text-center mt-2 text-grey">
+              Lūdzu, piesakieties, lai saglabātu
             </div>
           </v-col>
 
-          <v-col cols="12" md="8" class="d-flex justify-center align-center">
+          <v-col cols="12" md="9" class="d-flex justify-center align-center">
             <div ref="svgContainer" v-html="svgContent" class="svg-display-container"></div>
           </v-col>
         </v-row>
@@ -82,6 +97,26 @@
     <div v-else class="text-center pa-10">
       <v-progress-circular indeterminate color="primary"></v-progress-circular>
     </div>
+
+    <v-dialog v-model="saveDialog" max-width="400">
+      <v-card title="Saglabāt projektu">
+        <v-card-text>
+          <v-text-field
+            v-model="projectName"
+            label="Projekta nosaukums"
+            variant="outlined"
+            autofocus
+            hide-details
+            @keyup.enter="confirmSave"
+          ></v-text-field>
+        </v-card-text>
+        <v-card-actions class="pa-4">
+          <v-spacer></v-spacer>
+          <v-btn variant="text" @click="saveDialog = false">Atcelt</v-btn>
+          <v-btn color="primary" variant="elevated" @click="confirmSave" :loading="isSaving">Saglabāt</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -103,6 +138,20 @@ const colors = ref({});
 const undoStack = ref([]);
 const redoStack = ref([]);
 
+
+const applySavedColors = () => {
+  const svg = svgContainer.value?.querySelector("svg");
+  if (!svg || !colors.value) return;
+
+  Object.entries(colors.value).forEach(([id, color]) => {
+    const el = svg.getElementById(id) || svg.querySelector(`[id="${id}"]`);
+    if (el) {
+      el.setAttribute("fill", color);
+      el.style.fill = color;
+    }
+  });
+};
+
 const fetchDesign = async () => {
   try {
     const res = await axios.get(`/api/dizaini/${route.params.id}`);
@@ -116,10 +165,41 @@ const fetchDesign = async () => {
       rawSvg = rawSvg.substring(svgStartIndex);
     }
     svgContent.value = rawSvg;
+
+    await nextTick();
+    await new Promise(resolve => setTimeout(resolve, 100));
+    // --- NEW: Check if we are opening a specific saved project ---
+    if (route.query.project) {
+      fetchProjectData(route.query.project);
+    }
   } catch (err) {
-    console.error("Fetch Error:", err)
+    console.error("Fetch Error:", err);
   }
 };
+
+const fetchProjectData = async (projectId) => {
+  try {
+    const res = await axios.get(`/api/projects/${projectId}`);
+    let colorData = res.data.color_data;
+
+    if (typeof colorData === 'string') {
+      try {
+        colorData = JSON.parse(colorData);
+      } catch (e) {
+        console.error("Invalid JSON in color_data", e);
+      }
+    }
+
+    colors.value = colorData || {};
+    
+    // Apply colors to the SVG
+    applySavedColors();
+  } catch (err) {
+    console.error("Failed to load project colors:", err);
+  }
+};
+
+
 
 const getColorableElements = (svg) => {
   return svg.querySelectorAll("path, circle, rect, ellipse, polygon, polyline");
@@ -168,6 +248,10 @@ const setupSvgInteractions = async () => {
     el.onmouseleave = () => {
       el.setAttribute("opacity", el.dataset.originalOpacity);
     };
+
+    if (Object.keys(colors.value).length > 0) {
+      applySavedColors();
+    }
   });
 };
 
@@ -210,6 +294,49 @@ const reset = () => {
   undoStack.value = [];
   redoStack.value = [];
 };
+
+const saveDialog = ref(false);
+const projectName = ref('');
+const isSaving = ref(false);
+
+const saveProject = () => {
+  projectName.value = design.value.name; // Default name
+  saveDialog.value = true;
+};
+
+const confirmSave = async () => {
+  if (!projectName.value) return;
+  isSaving.value = true;
+
+  try {
+    const isUpdate = !!route.query.project;
+    const url = isUpdate ? `/api/projects/${route.query.project}` : '/api/projects';
+    const method = isUpdate ? 'put' : 'post';
+
+    await axios({
+      method: method,
+      url: url,
+      data: {
+        design_id: design.value.id,
+        name: projectName.value,
+        color_data: colors.value
+      }
+    });
+
+    saveDialog.value = false;
+    alert(isUpdate ? "Izmaiņas saglabātas!" : "Projekts saglabāts!");
+  } catch (err) {
+    if (err.response?.status === 404) {
+      alert("Kļūda: Projekts vairs neeksistē.");
+    } else {
+      console.error("Save Error:", err);
+    }
+  } finally {
+    isSaving.value = false;
+  }
+};
+
+
 
 watch(svgContent, async () => {
   if (svgContent.value) await setupSvgInteractions();

@@ -6,6 +6,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Middleware\AdminMiddleware;
+use App\Http\Controllers\ProjectController;
 use Illuminate\Http\Request;
 
 
@@ -21,6 +22,12 @@ Route::middleware(['web', 'auth:sanctum'])->group(function () {
     });
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::put('/user/update', [UserController::class, 'update']);
+    Route::get('/projects', [ProjectController::class, 'index']);
+    Route::post('/projects', [ProjectController::class, 'store']);
+
+    Route::get('/projects/{project}', [ProjectController::class, 'show']);
+    Route::put('/projects/{project}', [ProjectController::class, 'update']);
+    Route::delete('/projects/{project}', [ProjectController::class, 'destroy']);
 });
 
 // Admin only routes

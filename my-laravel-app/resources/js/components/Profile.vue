@@ -90,11 +90,64 @@
         </v-card>
 
         <v-card class="pa-6">
-          <div class="d-flex gap-4">
-            <v-btn variant="text" prepend-icon="mdi-folder-star" color="indigo">Mani Projekti</v-btn>
+          <div class="d-flex gap-4 mb-6">
+            <v-btn variant="tonal" prepend-icon="mdi-folder-star" color="indigo">Mani Projekti</v-btn>
             <v-btn variant="text" prepend-icon="mdi-heart" color="error">Favorīti</v-btn>
             <v-btn variant="text" prepend-icon="mdi-history">Nesenie</v-btn>
           </div>
+
+          <v-divider class="mb-6"></v-divider>
+
+          <v-row v-if="projects.length > 0">
+            <v-col v-for="project in projects" :key="project.id" cols="12" sm="6" md="4">
+              <v-card variant="outlined" class="project-card">
+
+                <div class="project-preview pa-2">
+                  <div 
+                    v-if="project.rendered_svg" 
+                    v-html="project.rendered_svg" 
+                    class="svg-wrapper"
+                  ></div>
+                  <v-progress-circular v-else indeterminate size="20"></v-progress-circular>
+                </div>
+                
+                <v-card-item>
+                  <div class="project-title truncate">{{ project.name }}</div>
+                  <div class="project-date">
+                    {{ new Date(project.created_at).toLocaleDateString('lv-LV') }}
+                  </div>
+                </v-card-item>
+
+                <v-card-actions>
+                  <v-btn 
+                    size="small" 
+                    color="primary" 
+                    variant="text" 
+                    prepend-icon="mdi-eye"
+                    :to="`/dizaini/${project.design_id}?project=${project.id}`"
+                  >
+                    Skatīt
+                  </v-btn>
+                  <v-spacer></v-spacer>
+                  <v-btn 
+                    icon="mdi-delete-outline" 
+                    size="x-small" 
+                    color="error" 
+                    variant="text"
+                    @click="deleteProject(project.id)"
+                  ></v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-col>
+          </v-row>
+
+          <div v-else-if="!projectsLoading" class="text-center py-10">
+            <v-icon icon="mdi-folder-open-outline" size="64" color="grey-lighten-1" class="mb-4"></v-icon>
+            <div class="text-h6 text-grey-darken-1">Jums vēl nav saglabātu projektu</div>
+            <v-btn color="primary" class="mt-4" to="/dizaini">Apskatīt dizainus</v-btn>
+          </div>
+
+          <v-skeleton-loader v-else type="card, card, card" />
         </v-card>
       </v-col>
     </v-row>
@@ -178,12 +231,174 @@ const updateProfile = async () => {
   }
 };
 
-onMounted(fetchUserData);
+const projects = ref([]);
+const projectsLoading = ref(false);
+
+const fetchProjects = async () => {
+  projectsLoading.value = true;
+  try {
+    const res = await axios.get("/api/projects");
+    // We create a local copy first
+    const projectsData = res.data;
+
+    // Use Promise.all to wait for all previews to finish before assigning to the ref
+    await Promise.all(projectsData.map(project => renderProjectPreview(project)));
+    
+    // Assign the fully populated array all at once
+    projects.value = projectsData;
+  } catch (err) {
+    console.error("Neizdevās ielādēt projektus", err);
+  } finally {
+    projectsLoading.value = false;
+  }
+};
+
+const renderProjectPreview = async (project) => {
+  try {
+    const designRes = await axios.get(`/api/dizaini/${project.design_id}`);
+    const svgRes = await axios.get(designRes.data.file_url, { responseType: 'text' });
+    
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgRes.data, "image/svg+xml");
+    const svgEl = doc.querySelector("svg");
+
+    if (!svgEl) return;
+
+    // 1. Standardize ViewBox
+    const w = svgEl.getAttribute('width');
+    const h = svgEl.getAttribute('height');
+    if (!svgEl.getAttribute('viewBox') && w && h) {
+      svgEl.setAttribute('viewBox', `0 0 ${w.replace('px', '')} ${h.replace('px', '')}`);
+    }
+
+    svgEl.removeAttribute('width');
+    svgEl.removeAttribute('height');
+    svgEl.style.display = 'block';
+
+    // 2. Parse color_data if it's a string
+    let colors = project.color_data;
+    if (typeof colors === 'string') {
+      try {
+        colors = JSON.parse(colors);
+      } catch (e) {
+        console.error("Failed to parse color_data string", e);
+        colors = null;
+      }
+    }
+
+    // 3. Inject saved colors
+    if (colors && typeof colors === 'object') {
+      Object.entries(colors).forEach(([id, color]) => {
+        // Try multiple selector strategies to ensure we find the element
+        const el = svgEl.getElementById(id) || 
+                   svgEl.querySelector(`[id="${id}"]`) || 
+                   svgEl.querySelector(`#${CSS.escape(id)}`);
+                   
+        if (el) {
+          el.setAttribute("fill", color);
+          el.style.fill = color;
+          el.style.opacity = "1"; 
+        }
+      });
+    }
+
+    project.rendered_svg = new XMLSerializer().serializeToString(svgEl);
+  } catch (err) {
+    console.error("Preview render failed:", err);
+    project.rendered_svg = '<span class="text-caption grey--text">Preview unavailable</span>';
+  }
+};
+
+const deleteProject = async (id) => {
+  if (!confirm("Vai tiešām vēlaties dzēst šo projektu?")) return;
+  try {
+    await axios.delete(`/api/projects/${id}`);
+    projects.value = projects.value.filter(p => p.id !== id);
+  } catch (err) {
+    console.error("Dzēšana neizdevās", err);
+  }
+};
+
+onMounted(() => {
+  fetchUserData();
+  fetchProjects();
+});
+
 </script>
 
 <style scoped>
-.gap-4 {
+.gap-4 { display: flex; gap: 16px; }
+
+.project-card {
+  transition: all 0.25s ease-in-out;
+  overflow: hidden;
+  border-radius: 12px;
+  background: white;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+.project-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12) !important;
+}
+
+.project-preview {
+  height: 180px;
   display: flex;
-  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  /* Cleaner, more subtle checkerboard */
+  background-color: #ffffff;
+  background-image: linear-gradient(45deg, #fafafa 25%, transparent 25%), 
+                    linear-gradient(-45deg, #fafafa 25%, transparent 25%), 
+                    linear-gradient(45deg, transparent 75%, #fafafa 75%), 
+                    linear-gradient(-45deg, transparent 75%, #fafafa 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.svg-wrapper {
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none; /* Prevents interaction with preview paths */
+}
+
+/* Scalable SVG logic */
+:deep(.svg-wrapper svg) {
+  width: auto !important;
+  height: auto !important;
+  max-width: 100%;
+  max-height: 100%;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));
+}
+
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.project-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.project-date {
+  font-size: 0.75rem;
+  color: #9e9e9e;
+}
+
+.v-card-item {
+  padding: 10px 12px 4px 12px !important;
+}
+
+.v-card-actions {
+  padding: 4px 8px 8px 8px !important;
 }
 </style>
