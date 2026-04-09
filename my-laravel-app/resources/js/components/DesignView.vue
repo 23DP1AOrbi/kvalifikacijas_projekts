@@ -105,7 +105,6 @@
             v-model="projectName"
             label="Projekta nosaukums"
             variant="outlined"
-            autofocus
             hide-details
             @keyup.enter="confirmSave"
           ></v-text-field>
@@ -113,7 +112,14 @@
         <v-card-actions class="pa-4">
           <v-spacer></v-spacer>
           <v-btn variant="text" @click="saveDialog = false">Atcelt</v-btn>
-          <v-btn color="primary" variant="elevated" @click="confirmSave" :loading="isSaving">Saglabāt</v-btn>
+          <v-btn 
+            color="primary" 
+            variant="elevated" 
+            @click="confirmSave" 
+            :loading="isSaving"
+            >
+            Saglabāt
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -122,11 +128,12 @@
 
 <script setup>
 import { ref, onMounted, nextTick, watch } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import axios from "../bootstrap.js";
 import DesignCategoryManager from './DesignCategoryManager.vue';
 import { user } from "../services/auth";
 
+const router = useRouter();
 const route = useRoute();
 const design = ref(null);
 const svgContent = ref('');
@@ -300,14 +307,22 @@ const projectName = ref('');
 const isSaving = ref(false);
 
 const saveProject = () => {
-  projectName.value = design.value.name; // Default name
-  saveDialog.value = true;
+  // If we have a project ID in the URL, it's an existing project
+  if (route.query.project) {
+    // Skip the dialog and save immediately
+    projectName.value = design.value.name; // Keep existing name logic
+    confirmSave();
+  } else {
+    // If it's a fresh design, ask for a name
+    projectName.value = design.value.name;
+    saveDialog.value = true;
+  }
 };
 
 const confirmSave = async () => {
-  if (!projectName.value) return;
+  if (!projectName.value && !route.query.project) return;
+ 
   isSaving.value = true;
-
   try {
     const isUpdate = !!route.query.project;
     const url = isUpdate ? `/api/projects/${route.query.project}` : '/api/projects';
@@ -319,20 +334,20 @@ const confirmSave = async () => {
       data: {
         design_id: design.value.id,
         name: projectName.value,
-        color_data: colors.value
+        color_data: Object.keys(colors.value).length > 0 ? colors.value : {}
       }
     });
 
     saveDialog.value = false;
-    alert(isUpdate ? "Izmaiņas saglabātas!" : "Projekts saglabāts!");
-  } catch (err) {
-    if (err.response?.status === 404) {
-      alert("Kļūda: Projekts vairs neeksistē.");
+    router.push('/profils');
+  } catch (error) {
+    // THIS IS THE MOST IMPORTANT PART FOR DEBUGGING:
+    if (error.response && error.response.status === 422) {
+      console.error("Validation Errors:", error.response.data.errors);
+      // This will print exactly which field failed (name, design_id, or color_data)
     } else {
-      console.error("Save Error:", err);
+      console.error("Save Error:", error);
     }
-  } finally {
-    isSaving.value = false;
   }
 };
 

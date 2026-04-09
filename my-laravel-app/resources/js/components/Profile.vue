@@ -105,6 +105,16 @@
                 class="project-card clickable-card"
                 @click="router.push(`/dizaini/${project.design_id}?project=${project.id}`)"
               >
+                <div class="rename-action">
+                  <v-btn 
+                    icon="mdi-pencil" 
+                    size="x-small" 
+                    color="primary" 
+                    variant="flat"
+                    @click.stop="openRenameDialog(project)"
+                  ></v-btn>
+                </div>
+
                 <div class="delete-action">
                   <v-btn 
                     icon="mdi-delete" 
@@ -124,27 +134,56 @@
                   <v-progress-circular v-else indeterminate size="20"></v-progress-circular>
                   
                   <div class="card-overlay">
-                    <v-icon icon="mdi-eye" color="white" size="large"></v-icon>
+                    <v-icon 
+                      icon="mdi-eye" 
+                      color="white" 
+                      size="large" 
+                      class="inverted-icon"
+                    ></v-icon>
                   </div>
                 </div>
                 
                 <v-card-item>
                   <div class="project-title truncate">{{ project.name }}</div>
                   <div class="project-date">
-                    {{ new Date(project.created_at).toLocaleDateString('lv-LV') }}
+                    Rediģēts:
+                    {{ new Date(project.updated_at).toLocaleString('lv-LV', { dateStyle: 'short', timeStyle: 'short' }) }}
                   </div>
                 </v-card-item>
               </v-card>
             </v-col>
           </v-row>
 
-          <div v-else-if="!projectsLoading" class="text-center py-10">
+          <v-row v-else-if="projectsLoading">
+            <v-col v-for="n in 3" :key="n" cols="12" sm="6" md="4">
+              <v-skeleton-loader type="card" />
+            </v-col>
+          </v-row>
+
+          <div v-else class="text-center py-10">
             <v-icon icon="mdi-folder-open-outline" size="64" color="grey-lighten-1" class="mb-4"></v-icon>
             <div class="text-h6 text-grey-darken-1">Jums vēl nav saglabātu projektu</div>
             <v-btn color="primary" class="mt-4" to="/dizaini">Apskatīt dizainus</v-btn>
           </div>
 
-          <v-skeleton-loader v-else type="card, card, card" />
+          <v-dialog v-model="renameDialog" max-width="400">
+            <v-card title="Pārsaukt projektu">
+              <v-card-text>
+                <v-text-field
+                  v-model="newName"
+                  label="Jaunais nosaukums"
+                  variant="outlined"
+                  hide-details
+                  @keyup.enter="confirmRename"
+                ></v-text-field>
+              </v-card-text>
+              <v-card-actions class="pa-4">
+                <v-spacer></v-spacer>
+                <v-btn variant="text" @click="renameDialog = false">Atcelt</v-btn>
+                <v-btn color="primary" variant="elevated" @click="confirmRename" :loading="renameLoading">Saglabāt</v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
         </v-card>
       </v-col>
     </v-row>
@@ -322,6 +361,44 @@ const deleteProject = async (id) => {
   }
 };
 
+const renameDialog = ref(false);
+const renameLoading = ref(false);
+const newName = ref('');
+const selectedProject = ref(null);
+
+const openRenameDialog = (project) => {
+  selectedProject.value = project;
+  newName.value = project.name; // Fill the text field with current name
+  renameDialog.value = true;
+};
+
+const confirmRename = async () => {
+  if (!newName.value || !selectedProject.value) return;
+  renameLoading.value = true;
+  
+  try {
+    await axios.put(`/api/projects/${selectedProject.value.id}`, {
+      name: newName.value,
+      // Pass existing colors back so the backend doesn't overwrite with null
+      color_data: selectedProject.value.color_data 
+    });
+    
+    // Find the project in our local 'projects' array and update it
+    const index = projects.value.findIndex(p => p.id === selectedProject.value.id);
+    if (index !== -1) {
+      projects.value[index].name = newName.value;
+      projects.value[index].updated_at = new Date().toISOString();
+    }
+    
+    renameDialog.value = false;
+  } catch (err) {
+    console.error("Pārsaukšana neizdevās", err);
+    alert("Kļūda: Neizdevās pārsaukt projektu.");
+  } finally {
+    renameLoading.value = false;
+  }
+};
+
 onMounted(() => {
   fetchUserData();
   fetchProjects();
@@ -351,6 +428,15 @@ onMounted(() => {
   box-shadow: 0 6px 16px rgba(0,0,0,0.1) !important;
 }
 
+.rename-action {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.15s ease-in-out;
+}
+
 .delete-action {
   position: absolute;
   top: 8px;
@@ -358,14 +444,14 @@ onMounted(() => {
   z-index: 10;
   opacity: 0;
   transition: opacity 0.15s ease-in-out;
-  cursor: pointer;
 }
 
+.clickable-card:hover .rename-action,
 .clickable-card:hover .delete-action {
   opacity: 1;
 }
 
-.delete-action,
+.rename-action .v-btn,
 .delete-action .v-btn {
   cursor: pointer !important;
 }
@@ -444,4 +530,10 @@ onMounted(() => {
 .v-card-item {
   padding: 10px 12px 4px 12px !important;
 }
+
+.inverted-icon {
+  mix-blend-mode: difference;
+  filter: brightness(1.2); 
+}
+
 </style>

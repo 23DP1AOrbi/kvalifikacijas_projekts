@@ -30,7 +30,7 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'design_id' => 'required|exists:designs,id',
             'name'      => 'required|string|max:255',
-            'color_data' => 'required|array',
+            'color_data' => 'nullable|array',
         ]);
 
         // 2. Use Auth::id() - it's a very reliable way to get the ID
@@ -55,8 +55,9 @@ class ProjectController extends Controller
         $project = Project::where('user_id', Auth::id())->findOrFail($id);
 
         $validated = $request->validate([
+            'design_id' => 'required|exists:designs,id',
             'name' => 'required|string|max:255',
-            'color_data' => 'required|array', // Ensure this is validated as an array
+            'color_data' => 'nullable|array',
         ]);
 
         $project->update($validated);

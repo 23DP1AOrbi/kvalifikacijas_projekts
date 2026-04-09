@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('design_id')->constrained()->onDelete('cascade');
             $table->string('name');
-            $table->json('color_data'); // Just the ID -> Color map
+            $table->json('color_data')->nullable(); // Just the ID -> Color map
             $table->timestamps();
         });
     }
