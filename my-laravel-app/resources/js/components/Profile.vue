@@ -100,7 +100,20 @@
 
           <v-row v-if="projects.length > 0">
             <v-col v-for="project in projects" :key="project.id" cols="12" sm="6" md="4">
-              <v-card variant="outlined" class="project-card">
+              <v-card 
+                variant="outlined" 
+                class="project-card clickable-card"
+                @click="router.push(`/dizaini/${project.design_id}?project=${project.id}`)"
+              >
+                <div class="delete-action">
+                  <v-btn 
+                    icon="mdi-delete" 
+                    size="x-small" 
+                    color="error" 
+                    variant="flat"
+                    @click.stop="deleteProject(project.id)"
+                  ></v-btn>
+                </div>
 
                 <div class="project-preview pa-2">
                   <div 
@@ -109,6 +122,10 @@
                     class="svg-wrapper"
                   ></div>
                   <v-progress-circular v-else indeterminate size="20"></v-progress-circular>
+                  
+                  <div class="card-overlay">
+                    <v-icon icon="mdi-eye" color="white" size="large"></v-icon>
+                  </div>
                 </div>
                 
                 <v-card-item>
@@ -117,26 +134,6 @@
                     {{ new Date(project.created_at).toLocaleDateString('lv-LV') }}
                   </div>
                 </v-card-item>
-
-                <v-card-actions>
-                  <v-btn 
-                    size="small" 
-                    color="primary" 
-                    variant="text" 
-                    prepend-icon="mdi-eye"
-                    :to="`/dizaini/${project.design_id}?project=${project.id}`"
-                  >
-                    Skatīt
-                  </v-btn>
-                  <v-spacer></v-spacer>
-                  <v-btn 
-                    icon="mdi-delete-outline" 
-                    size="x-small" 
-                    color="error" 
-                    variant="text"
-                    @click="deleteProject(project.id)"
-                  ></v-btn>
-                </v-card-actions>
               </v-card>
             </v-col>
           </v-row>
@@ -157,7 +154,9 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import axios from "../bootstrap.js";
+import { useRouter } from "vue-router"
 
+const router = useRouter();
 const isEditing = ref(false);
 const loading = ref(false);
 const successMessage = ref("");
@@ -260,9 +259,9 @@ const renderProjectPreview = async (project) => {
     
     const parser = new DOMParser();
     const doc = parser.parseFromString(svgRes.data, "image/svg+xml");
-    const svgEl = doc.querySelector("svg");
+    const svgEl = doc.documentElement;
 
-    if (!svgEl) return;
+    if (!svgEl || svgEl.nodeName !== "svg") return;
 
     // 1. Standardize ViewBox
     const w = svgEl.getAttribute('width');
@@ -270,33 +269,37 @@ const renderProjectPreview = async (project) => {
     if (!svgEl.getAttribute('viewBox') && w && h) {
       svgEl.setAttribute('viewBox', `0 0 ${w.replace('px', '')} ${h.replace('px', '')}`);
     }
-
     svgEl.removeAttribute('width');
     svgEl.removeAttribute('height');
-    svgEl.style.display = 'block';
 
-    // 2. Parse color_data if it's a string
+    // 2. IMPORTANT: Manually assign IDs to shapes based on index
+    // This replicates how your editor likely generates "svg-shape-N"
+    const shapes = svgEl.querySelectorAll('path, rect, circle, polygon, ellipse, text');
+    shapes.forEach((shape, index) => {
+      shape.setAttribute('id', `svg-shape-${index}`);
+    });
+
+    // 3. Parse color_data
     let colors = project.color_data;
     if (typeof colors === 'string') {
-      try {
-        colors = JSON.parse(colors);
-      } catch (e) {
-        console.error("Failed to parse color_data string", e);
-        colors = null;
-      }
+      try { colors = JSON.parse(colors); } catch (e) { colors = null; }
     }
 
-    // 3. Inject saved colors
+    // 4. Inject saved colors
     if (colors && typeof colors === 'object') {
       Object.entries(colors).forEach(([id, color]) => {
-        // Try multiple selector strategies to ensure we find the element
-        const el = svgEl.getElementById(id) || 
-                   svgEl.querySelector(`[id="${id}"]`) || 
-                   svgEl.querySelector(`#${CSS.escape(id)}`);
+        const el = svgEl.getElementById(id);
                    
         if (el) {
           el.setAttribute("fill", color);
           el.style.fill = color;
+          
+          // Handle strokes for lines/outlines
+          if (el.getAttribute('stroke') && el.getAttribute('stroke') !== 'none') {
+             el.setAttribute("stroke", color);
+             el.style.stroke = color;
+          }
+          
           el.style.opacity = "1"; 
         }
       });
@@ -305,7 +308,7 @@ const renderProjectPreview = async (project) => {
     project.rendered_svg = new XMLSerializer().serializeToString(svgEl);
   } catch (err) {
     console.error("Preview render failed:", err);
-    project.rendered_svg = '<span class="text-caption grey--text">Preview unavailable</span>';
+    project.rendered_svg = '<span class="text-caption">Preview unavailable</span>';
   }
 };
 
@@ -330,32 +333,76 @@ onMounted(() => {
 .gap-4 { display: flex; gap: 16px; }
 
 .project-card {
-  transition: all 0.25s ease-in-out;
   overflow: hidden;
-  border-radius: 12px;
+  border-radius: 8px;
   background: white;
   border: 1px solid rgba(0,0,0,0.08);
+  /* Force GPU acceleration to stop the lag */
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
-.project-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.12) !important;
+.clickable-card {
+  cursor: pointer;
+  position: relative;
+}
+
+.clickable-card:hover {
+  box-shadow: 0 6px 16px rgba(0,0,0,0.1) !important;
+}
+
+.delete-action {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.15s ease-in-out;
+  cursor: pointer;
+}
+
+.clickable-card:hover .delete-action {
+  opacity: 1;
+}
+
+.delete-action,
+.delete-action .v-btn {
+  cursor: pointer !important;
+}
+
+.delete-action .v-btn {
+  pointer-events: auto; 
 }
 
 .project-preview {
   height: 180px;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Cleaner, more subtle checkerboard */
   background-color: #ffffff;
   background-image: linear-gradient(45deg, #fafafa 25%, transparent 25%), 
                     linear-gradient(-45deg, #fafafa 25%, transparent 25%), 
                     linear-gradient(45deg, transparent 75%, #fafafa 75%), 
                     linear-gradient(-45deg, transparent 75%, #fafafa 75%);
   background-size: 16px 16px;
-  background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
   border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.card-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.clickable-card:hover .card-overlay {
+  opacity: 1;
 }
 
 .svg-wrapper {
@@ -365,16 +412,16 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  pointer-events: none; /* Prevents interaction with preview paths */
+  pointer-events: none; 
 }
 
-/* Scalable SVG logic */
 :deep(.svg-wrapper svg) {
   width: auto !important;
   height: auto !important;
   max-width: 100%;
   max-height: 100%;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));
+  shape-rendering: geometricPrecision;
 }
 
 .truncate {
@@ -396,9 +443,5 @@ onMounted(() => {
 
 .v-card-item {
   padding: 10px 12px 4px 12px !important;
-}
-
-.v-card-actions {
-  padding: 4px 8px 8px 8px !important;
 }
 </style>

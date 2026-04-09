@@ -157,7 +157,9 @@ onMounted(fetchData);
   padding: 8px;
   position: relative;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  transition: background-color 0.3s ease,transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform; 
+  backface-visibility: hidden;
 }
 
 /* On hover, we change the opacity of the background color only */
