@@ -17,7 +17,7 @@ const routes = [
     { path: '/about', component: About },
     { path: '/register', component: Register },
     { path: '/login', component: Login },
-    { path: '/profils', component: Profile },
+    { path: '/profils', component: Profile, meta: {requiresUser: true} },
     { path: '/dizaini', component: DesignGallery},
     { path: '/dizaini/:id', component: DesignView, props: true},
     { path: '/pievienot', component: DesignUpload, meta: { requiresAdmin: true }},
@@ -32,12 +32,13 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from, next) => {
-  if (to.meta.requiresAdmin) {
+  if (to.meta.requiresAdmin || to.meta.requiresUser) {
 
     if (user.value && user.value.role === 'admin') {
       next();
+    } else if  (user.value && user.value.role === 'user') {
+      next();
     } else {
-      console.warn("User is not admin or not logged in");
       next('/login'); 
     }
   } else {

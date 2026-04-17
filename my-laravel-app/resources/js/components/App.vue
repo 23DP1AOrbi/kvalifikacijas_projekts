@@ -1,24 +1,24 @@
 <script setup>
 import { onMounted } from "vue";
-import { user, fetchUser, logout } from "../services/auth";
+import { fetchUser } from "../services/auth";
+import Navbar from "./Navbar.vue"; // Import the new component
 
 onMounted(fetchUser);
 </script>
 
 <template>
-  <nav>
-    <router-link to="/">Home</router-link>
-    <router-link to="/about">About</router-link>
-    <router-link to="/dizaini">Dizaini</router-link>
-    <router-link v-if="user?.role === 'admin'" to="/kategorijas">Kategorijas</router-link>
+  <v-app>
+    <Navbar />
 
-    <router-link v-if="!user" to="/register">Register</router-link>
-    <router-link v-if="!user" to="/login">Login</router-link>
-
-    <router-link v-if="user?.role === 'admin'" to="/pievienot">Pievienot</router-link>
-    <router-link v-if="user" to="/profils">Profils</router-link>
-    <button v-if="user" @click="logout">Logout</button>
-  </nav>
-
-  <router-view />
+    <v-main class="bg-grey-lighten-4">
+      <router-view />
+    </v-main>
+  </v-app>
 </template>
+
+<style>
+/* Global styles if needed */
+body {
+  font-family: 'Inter', sans-serif;
+}
+</style>
