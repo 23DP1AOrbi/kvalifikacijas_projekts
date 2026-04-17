@@ -10,7 +10,7 @@
       Mani Projekti
     </v-btn>
     
-    <v-btn variant="text" prepend-icon="mdi-heart" color="error">Favorīti</v-btn>
+    <!-- <v-btn variant="text" prepend-icon="mdi-heart" color="error">Favorīti</v-btn> -->
     
     <v-btn 
       :variant="currentFilter === 'recent' ? 'tonal' : 'text'" 

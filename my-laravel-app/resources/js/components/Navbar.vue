@@ -4,13 +4,14 @@
       <v-list-item prepend-icon="mdi-home" title="Sākums" to="/"></v-list-item>
       <v-list-item prepend-icon="mdi-image-multiple" title="Dizaini" to="/dizaini"></v-list-item>
       
-      <v-divider class="my-2"></v-divider>
+      <v-divider class="my-2" v-if="user?.role === 'admin'"></v-divider>
 
       <template v-if="user?.role === 'admin'">
         <v-list-item prepend-icon="mdi-view-list" title="Kategorijas" to="/kategorijas"></v-list-item>
         <v-list-item prepend-icon="mdi-plus" title="Pievienot" to="/pievienot"></v-list-item>
-        <v-divider class="my-2"></v-divider>
       </template>
+
+      <v-divider class="my-2"></v-divider>
 
       <template v-if="!user">
         <v-list-item prepend-icon="mdi-login" title="Ienākt" to="/login"></v-list-item>
@@ -25,54 +26,54 @@
   </v-navigation-drawer>
 
   <v-app-bar flat border color="white">
-    <v-container class="d-flex align-center pa-0">
+    <div class="d-flex align-center w-100 px-4 px-md-8 mx-auto" style="max-width: 1400px;">
       
       <v-toolbar-title 
-        class="font-weight-bold text-h5 flex-grow-0 mr-4" 
+        class="font-weight-bold text-h6 text-sm-h5 flex-grow-0" 
         style="cursor: pointer" 
         @click="router.push('/')"
       >
         <span class="text-primary">Dizaina</span>Portāls
       </v-toolbar-title>
 
-      <div class="hidden-sm-and-down d-flex gap-2">
-        <v-btn variant="text" to="/" class="text-none">Sākums</v-btn>
-        <v-btn variant="text" to="/dizaini" class="text-none">Dizaini</v-btn>
+      <div class="hidden-sm-and-down d-flex align-center ml-16">
+        <v-btn variant="text" to="/" class="text-none mx-1">Sākums</v-btn>
+        <v-btn variant="text" to="/dizaini" class="text-none mx-1">Dizaini</v-btn>
         
         <template v-if="user?.role === 'admin'">
-          <v-btn variant="text" color="indigo" to="/kategorijas" class="text-none">Kategorijas</v-btn>
-          <v-btn variant="tonal" color="indigo" to="/pievienot" prepend-icon="mdi-plus" class="text-none">Pievienot</v-btn>
+          <v-btn variant="text" color="indigo" to="/kategorijas" class="text-none mx-1">Kategorijas</v-btn>
+          <v-btn variant="tonal" color="indigo" to="/pievienot" prepend-icon="mdi-plus" class="text-none mx-1">Pievienot</v-btn>
         </template>
       </div>
 
       <v-spacer></v-spacer>
 
-      <div class="hidden-sm-and-down d-flex align-center gap-2">
+      <div class="hidden-sm-and-down d-flex align-center">
         <template v-if="!user">
-          <v-btn variant="text" to="/login" class="text-none">Ienākt</v-btn>
-          <v-btn color="primary" variant="elevated" to="/register" class="text-none rounded-pill px-6">
+          <v-btn variant="text" to="/login" class="text-none mx-1">Ienākt</v-btn>
+          <v-btn color="primary" variant="elevated" to="/register" class="text-none rounded-pill px-6 ml-2">
             Reģistrēties
           </v-btn>
         </template>
 
         <template v-else>
-          <v-btn variant="text" to="/profils" class="text-none px-2 rounded-lg">
+          <v-btn variant="text" to="/profils" class="text-none px-2 rounded-lg mr-2">
             <v-avatar color="primary" size="30" class="mr-2">
               <span class="text-caption" v-if="user.name">{{ user.name.charAt(0).toUpperCase() }}</span>
               <v-icon v-else icon="mdi-account" size="small"></v-icon>
             </v-avatar>
-            <span>{{ user.name }}</span>
+            <span class="hidden-md-and-down">{{ user.name }}</span>
           </v-btn>
-          <v-btn variant="tonal" color="error" icon="mdi-logout" class="ml-2" @click="handleLogout"></v-btn>
+          <v-btn variant="tonal" color="error" icon="mdi-logout" density="comfortable" @click="handleLogout"></v-btn>
         </template>
       </div>
 
       <v-app-bar-nav-icon 
-        class="hidden-md-and-up" 
+        class="hidden-md-and-up ml-2" 
         @click="drawer = !drawer"
       ></v-app-bar-nav-icon>
       
-    </v-container>
+    </div>
   </v-app-bar>
 </template>
 
@@ -82,29 +83,15 @@ import { useRouter } from "vue-router";
 import { user, logout } from "../services/auth";
 
 const router = useRouter();
-const drawer = ref(false); // Controls the mobile side menu
+const drawer = ref(false);
 
 const handleLogout = async () => {
   try {
     await logout();
-    drawer.value = false; // Close drawer on logout
+    drawer.value = false;
     router.push('/login');
   } catch (err) {
     console.error("Logout failed:", err);
   }
 };
 </script>
-
-<style scoped>
-.gap-2 {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-@media (max-width: 600px) {
-  .v-container {
-    padding: 0 16px !important;
-  }
-}
-</style>

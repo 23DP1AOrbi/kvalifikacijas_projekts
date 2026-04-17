@@ -21,4 +21,15 @@ onMounted(fetchUser);
 body {
   font-family: 'Inter', sans-serif;
 }
+
+html, body {
+  overflow-x: hidden !important;
+  width: 100%;
+  position: relative;
+}
+
+.v-main {
+  min-height: 100vh;
+}
+
 </style>

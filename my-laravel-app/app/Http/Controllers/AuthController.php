@@ -19,7 +19,7 @@ class AuthController extends Controller
             ]);
         }
 
-        return response()->json(['message' => 'Invalid credentials'], 401);
+        return response()->json(['message' => 'Nederīgi dati'], 401);
     
     }
 
