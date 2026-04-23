@@ -10,20 +10,21 @@ import DesignView from '../components/DesignView.vue'
 import DesignUpload from '../components/DesignUpload.vue'
 import CategoryManager from '../components/CategoryManager.vue'
 import DesignEdit from '../components/DesignEdit.vue'
+import NotFound from '../components/NotFound.vue'
 
 
 const routes = [
     { path: '/', component: Home },
-    { path: '/about', component: About },
-    { path: '/register', component: Register },
-    { path: '/login', component: Login },
+    { path: '/par-mums', component: About },
+    { path: '/registracija', component: Register },
+    { path: '/pieslegties', component: Login },
     { path: '/profils', component: Profile, meta: {requiresUser: true} },
     { path: '/dizaini', component: DesignGallery},
     { path: '/dizaini/:id', component: DesignView, props: true},
     { path: '/pievienot', component: DesignUpload, meta: { requiresAdmin: true }},
     { path: '/kategorijas', component: CategoryManager, meta: { requiresAdmin: true } },
     { path: '/dizaini/:id/edit', component: DesignEdit, meta: { requiresAdmin: true } },
-
+    { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound }
 ];
 
 const router = createRouter({
@@ -39,7 +40,7 @@ router.beforeEach(async (to, from, next) => {
     } else if  (user.value && user.value.role === 'user') {
       next();
     } else {
-      next('/login'); 
+      next('/pieslegties'); 
     }
   } else {
     next();

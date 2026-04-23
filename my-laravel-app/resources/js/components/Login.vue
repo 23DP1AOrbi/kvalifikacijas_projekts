@@ -1,7 +1,7 @@
 <template>
   <div class="login-page-wrapper">
     <v-container>
-      <v-row justify="center" align="center" no-gutters>
+      <v-row justify="center" align="center" density="compact">
         <v-col cols="12" sm="10" md="6" lg="5">
           
           <v-card class="pa-10 rounded-lg elevation-12">
@@ -70,7 +70,7 @@
               <span class="text-body-2 text-medium-emphasis">Nav konta? </span>
               <v-btn
                 variant="text"
-                to="/register"
+                to="/registracija"
                 color="primary"
                 class="text-none font-weight-bold px-1"
               >

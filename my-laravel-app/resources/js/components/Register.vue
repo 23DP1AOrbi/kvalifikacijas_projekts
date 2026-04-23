@@ -2,7 +2,7 @@
   <div class="auth-wrapper">
     <v-container fluid class="pa-0">
       <v-row justify="center" align="center" density="compact" class="ma-0">
-        <v-col cols="11" sm="8" md="6" lg="4">
+        <v-col cols="12" sm="8" md="8" lg="4">
           
           <v-card class="auth-card pa-5 pa-sm-8 rounded-lg elevation-12 mx-auto">
             <h1 class="text-h5 font-weight-bold text-center mb-4">Izveidot kontu</h1>
@@ -98,7 +98,7 @@
               <span class="text-body-2 text-medium-emphasis">Jau ir konts? </span>
               <v-btn
                 variant="text"
-                to="/login"
+                to="/pieslegties"
                 color="primary"
                 size="small"
                 class="text-none font-weight-bold px-1"

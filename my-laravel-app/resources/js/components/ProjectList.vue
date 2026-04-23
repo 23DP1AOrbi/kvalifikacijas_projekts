@@ -22,9 +22,7 @@
 
     <v-divider vertical class="mx-2"></v-divider>
 
-    <v-fade-transition>
-      <v-btn
-        v-if="currentFilter === 'recent'"
+    <v-btn
         variant="outlined"
         size="small"
         :icon="sortOrder === 'desc' ? 'mdi-sort-calendar-descending' : 'mdi-sort-calendar-ascending'"
@@ -32,13 +30,12 @@
       >
         <v-icon :icon="sortOrder === 'desc' ? 'mdi-arrow-down' : 'mdi-arrow-up'"></v-icon>
       </v-btn>
-    </v-fade-transition>
   </div>
 
   <v-divider class="mb-6"></v-divider>
 
   <v-row v-if="filteredProjects.length > 0">
-    <v-col v-for="project in filteredProjects" :key="project.id" cols="12" sm="6" md="4">
+    <v-col v-for="project in filteredProjects" :key="project.id" cols="12" sm="6" md="8">
               <v-card 
                 variant="outlined" 
                 class="project-card clickable-card"
@@ -77,7 +74,6 @@
                       icon="mdi-eye" 
                       color="white" 
                       size="large" 
-                      class="inverted-icon"
                     ></v-icon>
                   </div>
                 </div>
@@ -265,11 +261,20 @@ const confirmRename = async () => {
 const currentFilter = ref('all'); 
 const sortOrder = ref('desc');
 
-
+// MODIFIED: Sorting button now works for both tabs with different logic
 const filteredProjects = computed(() => {
   let list = [...projects.value];
 
+  // Always apply sorting based on current filter and sortOrder
   if (currentFilter.value === 'recent') {
+    // "Nesenie" - sort by created_at (when project was added/created)
+    list.sort((a, b) => {
+      const dateA = new Date(a.created_at);
+      const dateB = new Date(b.created_at);
+      return sortOrder.value === 'desc' ? dateB - dateA : dateA - dateB;
+    });
+  } else {
+    // "Mani projekti" (all) - sort by updated_at (last edited)
     list.sort((a, b) => {
       const dateA = new Date(a.updated_at);
       const dateB = new Date(b.updated_at);
@@ -417,11 +422,6 @@ onMounted(fetchProjects);
 
 .v-card-item {
   padding: 10px 12px 4px 12px !important;
-}
-
-.inverted-icon {
-  mix-blend-mode: difference;
-  filter: brightness(1.2); 
 }
 
 </style>

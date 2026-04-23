@@ -57,16 +57,6 @@ const filteredDesigns = computed(() => {
   return filtered;
 });
 
-// const deleteDesign = async (id) => {
-//   if (!confirm("Are you sure?")) return;
-//   try {
-//     await axios.delete(`/api/dizaini/${id}`);
-//     designs.value = designs.value.filter(d => d.id !== id);
-//   } catch (err) {
-//     console.error(err);
-//   }
-// };
-
 const goToDesign = (id) => {
   if (user.value?.role === 'admin') {
     router.push(`/dizaini/${id}/edit`);
@@ -79,10 +69,10 @@ onMounted(fetchData);
 </script>
 
 <template>
-  <VContainer>
-    <h1 class="mb-4">Dizaini</h1>
+  <VContainer fluid style="max-width: 1400px; padding-left: 16px; padding-right: 16px;">
+    <h1 class="mb-4 mt-4">Dizaini</h1>
 
-    <VRow class="mb-6">
+    <VRow>
       <VCol cols="12" md="6">
         <VTextField
           v-model="searchQuery"
@@ -108,8 +98,8 @@ onMounted(fetchData);
       </VCol>
     </VRow>
 
-    <div v-if="loading">Ielādē...</div>
-    <div v-else-if="filteredDesigns.length === 0">Nekas netika atrasts.</div>
+    <div v-if="loading" class="text-center pa-10">Ielādē...</div>
+    <div v-else-if="filteredDesigns.length === 0" class="text-center pa-10">Nekas netika atrasts.</div>
 
     <VRow v-else>
       <VCol
@@ -123,19 +113,11 @@ onMounted(fetchData);
         <VCard
           class="design-card d-flex flex-column"
           @click="goToDesign(design.id)"
+          elevation="2"
         >
-          <!-- <div v-if="user?.role === 'admin'" class="admin-actions">
-            <v-btn
-              icon="mdi-delete"
-              color="white"
-              variant="flat"
-              class="text-error"
-              size="small"
-              @click.stop="deleteDesign(design.id)"
-            ></v-btn>
-          </div> -->
-
-          <VCardTitle class="text-center">{{ design.name }}</VCardTitle>
+          <VCardTitle class="text-center text-subtitle-1 font-weight-bold">
+            {{ design.name }}
+          </VCardTitle>
 
           <VCardText class="preview-container">
             <img
@@ -151,31 +133,31 @@ onMounted(fetchData);
 </template>
 
 <style scoped>
+/* Prevent the card from ever pushing the width */
 .design-card {
-  background-color: #bdbdbd !important; /* Base gray */
+  background-color: #bdbdbd !important;
   height: 350px;
-  padding: 8px;
-  position: relative;
-  cursor: pointer;
-  transition: background-color 0.3s ease,transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform; 
-  backface-visibility: hidden;
+  width: 100%; /* Ensure it stays inside the VCol */
+  overflow: hidden;
+  transition: transform 0.2s ease, background-color 0.3s ease;
 }
 
-/* On hover, we change the opacity of the background color only */
 .design-card:hover {
-  background-color: rgba(189, 189, 189, 0.4) !important; 
-  transform: translateY(-4px);
+  background-color: #e0e0e0 !important; 
+  transform: translateY(-5px);
 }
 
 .preview-container {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: white; /* Keeps the SVG area clean */
+  background-color: white;
+  margin: 8px;
   border-radius: 4px;
-  margin-top: 8px;
   flex-grow: 1;
+  /* CRITICAL: This prevents the image from expanding the card width */
+  min-width: 0; 
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -183,12 +165,6 @@ onMounted(fetchData);
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-}
-
-.admin-actions {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 20;
+  display: block;
 }
 </style>
