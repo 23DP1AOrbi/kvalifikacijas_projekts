@@ -65,9 +65,8 @@ html, body {
   position: relative;
 }
 
-#app {
-  width: 100%;
-  overflow-x: hidden;
+* {
+  box-sizing: border-box;
 }
 
 body {
@@ -76,18 +75,10 @@ body {
 }
 
 .v-main {
-  width: 100%;
-  max-width: 100vw;
-  overflow-x: hidden;
+  /* flex: 1 0 auto;
+  max-width: 100%; */
 }
 
-img, svg {
-  max-width: 100% !important;
-  height: auto !important;
-  display: block;
-}
-
-/* 2. Global Overlay & Interactive States */
 .v-btn__overlay,
 .v-list-item__overlay,
 .v-card__overlay {
@@ -114,20 +105,4 @@ img, svg {
   font-weight: 700 !important;
 }
 
-/* 3. Scrollbar Styling */
-.v-theme--dark {
-  ::-webkit-scrollbar { width: 12px; }
-  ::-webkit-scrollbar-track { background: #2c2c2c; }
-  ::-webkit-scrollbar-thumb {
-    background: #555;
-    border-radius: 6px;
-  }
-  ::-webkit-scrollbar-thumb:hover { background: #666; }
-}
-
-/* 4. Utility */
-img, video {
-  max-width: 100%;
-  height: auto;
-}
 </style>

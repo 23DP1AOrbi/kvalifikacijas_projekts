@@ -12,18 +12,18 @@ const vuetify = createVuetify({
       light: {
         dark: false,
         colors: {
-          background: '#F8FAFC', // Soft off-white blue/grey
-          surface: '#FFFFFF',    // Pure white for cards/elements
-          primary: '#0F172A',    // Deep slate (looks better than pure black or bright blue)
-          secondary: '#334155',  // Muted slate for secondary actions
-          accent: '#3B82F6',     // Bright blue only for highlights
+          background: '#F1F5F9', 
+          surface: '#FFFFFF',    
+          primary: '#0F172A',    
+          secondary: '#475569',  
+          accent: '#2563EB',     
           error: '#EF4444',
           info: '#3B82F6',
           success: '#22C55E',
           warning: '#F59E0B',
         },
         variables: {
-          'border-color': '#E2E8F0',
+          'border-color': '#CBD5E1',
           'hover-opacity': 0.04,
           'focus-opacity': 0.10,
           'selected-opacity': 0.08,

@@ -1,6 +1,7 @@
 <template>
 <v-navigation-drawer 
     v-model="drawer" 
+    app
     temporary 
     location="right"
 >
@@ -40,7 +41,7 @@
   </v-navigation-drawer>
 
   <v-app-bar flat border color="surface">
-    <div class="d-flex align-center w-100 px-4 px-md-8 mx-auto" style="max-width: 1400px;">
+    <div class="d-flex align-center w-100 px-4 px-md-8 mx-auto" >
       <v-icon 
         icon="mdi-material-design" 
         color="primary" 
@@ -55,7 +56,7 @@
         <span class="text-primary">Dizaina</span>Portāls
       </v-toolbar-title>
 
-      <div class="hidden-sm-and-down d-flex align-center ml-16">
+      <div class="hidden-sm-and-down d-flex align-center ml-md-16 ml-4">
         <v-btn variant="text" to="/" color="secondary" class="text-none mx-1">Sākums</v-btn>
         <v-btn variant="text" to="/par-mums" color="secondary" class="text-none mx-1">Par Mums</v-btn>
         <v-btn variant="text" to="/dizaini" color="secondary" class="text-none mx-1">Dizaini</v-btn>

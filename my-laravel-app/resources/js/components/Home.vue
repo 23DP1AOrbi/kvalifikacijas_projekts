@@ -1,9 +1,10 @@
 <template>
+    <v-container fluid class="pa-0">
   <div class="page-wrapper">
     <v-sheet
       height="65vh"
       class="hero-section d-flex align-center justify-center text-center"
-      :color="isDarkMode ? 'background' : '#F1F5F9'"
+      :color="isDarkMode ? 'background' : 'surface'"
     >
       <div class="hero-overlay"></div>
       <v-container>
@@ -24,27 +25,22 @@
     </v-sheet>
 
     <v-container class="py-16">
-      <v-row justify="center" no-gutters>
-        <v-col cols="12" md="10">
-          
-          <div class="d-flex align-center justify-space-between mb-8 px-2">
-            <h2 class="text-h4 font-weight-bold">Nesen Pievienotie</h2>
-            <v-btn 
-              variant="text" 
-              color="secondary" 
-              to="/dizaini" 
-              append-icon="mdi-arrow-right"
-              class="text-none px-0" 
-            >
-              Skatīt visus
-            </v-btn>
-          </div>
+  <v-row justify="center">
+    <v-col cols="12" md="10">
+      
+      <div class="d-flex align-center justify-space-between mb-8 px-2">
+        <h2 class="text-h4 font-weight-bold">Nesen Pievienotie</h2>
+        <v-btn variant="text" color="secondary" to="/dizaini" append-icon="mdi-arrow-right">
+          Skatīt visus
+        </v-btn>
+      </div>
 
-          <v-row v-if="loading">
-            <v-col v-for="n in 3" :key="n" cols="12" sm="4" class="pa-2">
-              <v-skeleton-loader type="card" height="350"></v-skeleton-loader>
-            </v-col>
-          </v-row>
+      <v-container fluid class="pa-0"> 
+        <v-row v-if="loading">
+          <v-col v-for="n in 3" :key="n" cols="12" sm="4" class="pa-2">
+            <v-skeleton-loader type="card" height="350"></v-skeleton-loader>
+          </v-col>
+        </v-row>
 
           <v-row v-else-if="designs.length > 0">
             <v-col 
@@ -71,11 +67,13 @@
               </v-card>
             </v-col>
           </v-row>
+          </v-container>
           
         </v-col>
       </v-row>
     </v-container>
   </div>
+  </v-container>
 </template>
 
 <script setup>
@@ -157,7 +155,7 @@ onMounted(fetchLatestDesigns);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 15%; /* Safe space for SVGs */
+  padding: 12%; /* Safe space for SVGs */
 }
 
 .responsive-svg {
