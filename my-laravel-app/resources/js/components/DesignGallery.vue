@@ -1,3 +1,104 @@
+<template>
+  <VContainer fluid style="max-width: 1400px; padding-left: 16px; padding-right: 16px;">
+    <h1 class="mb-4 mt-8 font-weight-bold">Dizaini</h1>
+
+    <VRow class="mb-8">
+      <VCol cols="12" md="4">
+        <VTextField
+          v-model="searchQuery"
+          label="Meklēt pēc nosaukuma..."
+          prepend-inner-icon="mdi-magnify"
+          variant="outlined"
+          density="comfortable"
+          clearable
+          hide-details
+        />
+      </VCol>
+      <VCol cols="12" md="5">
+        <VSelect
+          v-model="selectedCategories"
+          :items="categories"
+          item-title="name"
+          item-value="id"
+          label="Filtrēt pēc kategorijām"
+          variant="outlined"
+          density="comfortable"
+          multiple
+          chips
+          closable-chips
+          clearable
+          hide-details
+        />
+      </VCol>
+      <VCol cols="12" md="3">
+        <VSelect
+          v-model="selectedColorType"
+          :items="colorOptions"
+          label="Tips"
+          variant="outlined"
+          density="comfortable"
+          hide-details
+        />
+      </VCol>
+    </VRow>
+
+    <div v-if="loading" class="text-center pa-10">
+      <v-progress-circular indeterminate color="primary"></v-progress-circular>
+    </div>
+    <div v-else-if="filteredDesigns.length === 0" class="text-center pa-10 text-medium-emphasis">
+      Nekas netika atrasts.
+    </div>
+
+    <VRow v-else>
+      <VCol
+        v-for="design in filteredDesigns"
+        :key="design.id"
+        cols="12"
+        sm="6"
+        md="4"
+        lg="3"
+        class="pa-3 d-flex justify-center"
+      >
+        <VCard
+          color="surface"
+          class="design-card rounded-xl pa-4 d-flex flex-column h-100"
+          @click="goToDesign(design.id)"
+        >
+          <VCardTitle class="text-center font-weight-bold pt-0 pb-4 text-subtitle-1 text-truncate">
+            {{ design.name }}
+          </VCardTitle>
+
+          <div class="white-box-wrapper">
+            <div class="white-box-inner">
+              <img 
+                :src="design.file_url" 
+                :alt="design.name" 
+                class="responsive-svg" 
+              />
+            </div>
+          </div>
+
+          <div v-if="user?.role === 'admin'" class="mt-3 d-flex flex-wrap ga-1">
+            <v-chip
+              v-for="cat in design.categories"
+              :key="cat.id"
+              size="x-small"
+              variant="tonal"
+              color="primary"
+              class="admin-cat-chip"
+            >
+              {{ cat.name }}
+            </v-chip>
+            <div v-if="!design.categories?.length" class="text-caption text-grey italic">
+              Nav kategoriju
+            </div>
+          </div>
+        </VCard>
+      </VCol>
+    </VRow>
+  </VContainer>
+</template>
+
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
@@ -85,98 +186,15 @@ const goToDesign = (id) => {
 onMounted(fetchData);
 </script>
 
-<template>
-  <VContainer fluid style="max-width: 1400px; padding-left: 16px; padding-right: 16px;">
-    <h1 class="mb-4 mt-8 font-weight-bold">Dizaini</h1>
-
-    <VRow class="mb-8">
-      <VCol cols="12" md="4">
-        <VTextField
-          v-model="searchQuery"
-          label="Meklēt pēc nosaukuma..."
-          prepend-inner-icon="mdi-magnify"
-          variant="outlined"
-          density="comfortable"
-          clearable
-          hide-details
-        />
-      </VCol>
-      <VCol cols="12" md="5">
-        <VSelect
-          v-model="selectedCategories"
-          :items="categories"
-          item-title="name"
-          item-value="id"
-          label="Filtrēt pēc kategorijām"
-          variant="outlined"
-          density="comfortable"
-          multiple
-          chips
-          closable-chips
-          clearable
-          hide-details
-        />
-      </VCol>
-      <VCol cols="12" md="3">
-        <VSelect
-          v-model="selectedColorType"
-          :items="colorOptions"
-          label="Tips"
-          variant="outlined"
-          density="comfortable"
-          hide-details
-        />
-      </VCol>
-    </VRow>
-
-    <div v-if="loading" class="text-center pa-10">
-      <v-progress-circular indeterminate color="primary"></v-progress-circular>
-    </div>
-    <div v-else-if="filteredDesigns.length === 0" class="text-center pa-10 text-medium-emphasis">
-      Nekas netika atrasts.
-    </div>
-
-    <VRow v-else>
-      <VCol
-        v-for="design in filteredDesigns"
-        :key="design.id"
-        cols="12"
-        sm="6"
-        md="4"
-        lg="3"
-        class="pa-3 d-flex justify-center"
-      >
-        <VCard
-          color="surface"
-          class="design-card rounded-xl pa-4 d-flex flex-column h-100"
-          @click="goToDesign(design.id)"
-        >
-          <VCardTitle class="text-center font-weight-bold pt-0 pb-4 text-subtitle-1 text-truncate">
-            {{ design.name }}
-          </VCardTitle>
-
-          <div class="white-box-wrapper">
-            <div class="white-box-inner">
-              <img 
-                :src="design.file_url" 
-                :alt="design.name" 
-                class="responsive-svg" 
-              />
-            </div>
-          </div>
-        </VCard>
-      </VCol>
-    </VRow>
-  </VContainer>
-</template>
-
 <style scoped>
+
 .design-card {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   width: 100%;
-  /* Removed hardcoded background-color to let Vuetify theme handle it */
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  display: flex;
+  flex-direction: column;
 }
 
 .design-card:hover {
@@ -185,11 +203,10 @@ onMounted(fetchData);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1) !important;
 }
 
-/* MATCHING HOME.VUE BOX LOGIC */
 .white-box-wrapper {
   width: 100%;
   position: relative;
-  padding-top: 100%; /* Perfect Square */
+  padding-top: 100%; 
   background-color: white; /* Keep white so SVGs look clean regardless of theme */
   border-radius: 12px;
   overflow: hidden;
@@ -214,4 +231,19 @@ onMounted(fetchData);
 .v-card-title {
   display: block;
 }
+
+.admin-cat-chip {
+  font-size: 10px !important;
+  height: 18px !important;
+  opacity: 0.9;
+}
+
+.ga-1 {
+  gap: 4px !important;
+}
+
+.italic {
+  font-style: italic;
+}
+
 </style>
