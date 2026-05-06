@@ -12,6 +12,7 @@ class Design extends Model
     protected $fillable = [
         'name',
         'file_url', 
+        'is_color',
     ];
 
     public function categories()

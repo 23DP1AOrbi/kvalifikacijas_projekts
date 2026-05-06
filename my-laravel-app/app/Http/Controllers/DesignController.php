@@ -34,18 +34,18 @@ class DesignController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'image' => 'required|file|mimes:svg',
-            'category_ids' => 'array'
+            'category_ids' => 'array',
+            'is_color' => 'required|boolean'
         ]);
 
-        // Store SVG in storage/app/public/designs
         $path = $request->file('image')->store('designs', 'public');
 
         $design = Design::create([
             'name' => $validated['name'],
             'file_url' => $path,
+            'is_color' => $validated['is_color'],
         ]);
 
-        // Return the design with a full URL
         $design->file_url = asset('storage/' . $design->file_url);
 
         if ($request->has('category_ids')) {
@@ -67,12 +67,10 @@ class DesignController extends Controller
     {
         $design = Design::findOrFail($id);
 
-        // 1. Delete the physical file from storage
         if (Storage::disk('public')->exists($design->file_url)) {
             Storage::disk('public')->delete($design->file_url);
         }
 
-        // 2. Delete the database record (this also removes pivot table links)
         $design->delete();
 
         return response()->json(['message' => 'Design deleted successfully']);
@@ -85,7 +83,8 @@ class DesignController extends Controller
         $design = Design::findOrFail($id);
 
         $data = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'sometimes|string|max:255',
+            'is_color' => 'sometimes|boolean',
         ]);
 
         $design->update($data);
@@ -95,13 +94,11 @@ class DesignController extends Controller
 
     public function syncCategories(Request $request, Design $design)
     {
-        // Validate that category_ids is an array of existing IDs
         $data = $request->validate([
             'category_ids' => 'array',
             'category_ids.*' => 'exists:categories,id'
         ]);
 
-        // Use sync() to add/remove associations in the pivot table automatically
         $design->categories()->sync($data['category_ids'] ?? []);
 
         return response()->json(['message' => 'Categories synced successfully']);

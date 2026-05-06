@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('designs', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            // Store the path to the uploaded SVG instead of the full content
             $table->string('file_url'); 
             $table->timestamps();
         });

@@ -26,6 +26,27 @@
       </v-col>
     </v-row>
 
+    <v-row justify="center" class="mb-6">
+    <v-col cols="8" md="10">
+      <v-card variant="tonal" color="primary" class="pa-4">
+        <v-row class="text-center">
+          <v-col cols="8">
+            <div class="text-h6">{{ categories.length }}</div>
+            <div class="text-caption">Kategorijas kopā</div>
+          </v-col>
+          <!-- <v-col cols="4">
+            <div class="text-h6">{{ totalDesigns }}</div>
+            <div class="text-caption">Dizaini kopā</div>
+          </v-col>
+          <v-col cols="4">
+            <div class="text-h6">{{ avgDesigns }}</div>
+            <div class="text-caption">Vidēji dizaini/kat.</div>
+          </v-col> -->
+        </v-row>
+      </v-card>
+    </v-col>
+  </v-row>
+
     <div class="d-flex justify-center flex-wrap gap-3">
       <v-chip 
         v-for="cat in filteredCategories" 
@@ -37,7 +58,7 @@
         <span class="mr-2">{{ cat.name }}</span>
         
         <v-badge
-          color="white"
+          color="background"
           :content="cat.designs_count || '0'"
           inline
           text-color="primary"
@@ -74,7 +95,6 @@ const categories = ref([]);
 const newCategory = ref('');
 const searchQuery = ref('');
 
-// Logic for the Modal
 const confirmAlert = ref(null);
 const categoryToDelete = ref(null);
 
@@ -102,18 +122,11 @@ const addCategory = async () => {
   }
 };
 
-/**
- * 1. Store the category object in a ref so the modal knows the name/id
- * 2. Open the modal
- */
 const openDeleteModal = (category) => {
   categoryToDelete.value = category;
   confirmAlert.value.open();
 };
 
-/**
- * 3. Run this ONLY after the user clicks "Dzēst" in the modal
- */
 const executeDelete = async () => {
   if (!categoryToDelete.value) return;
 

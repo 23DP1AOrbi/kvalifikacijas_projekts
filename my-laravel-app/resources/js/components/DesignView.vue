@@ -341,10 +341,8 @@ const confirmSave = async () => {
     saveDialog.value = false;
     router.push('/profils');
   } catch (error) {
-    // THIS IS THE MOST IMPORTANT PART FOR DEBUGGING:
     if (error.response && error.response.status === 422) {
       console.error("Validation Errors:", error.response.data.errors);
-      // This will print exactly which field failed (name, design_id, or color_data)
     } else {
       console.error("Save Error:", error);
     }

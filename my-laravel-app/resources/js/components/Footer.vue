@@ -41,11 +41,11 @@
 </template>
 
 <style scoped>
-/* Ensure content doesn't get squished on very small screens */
+
 @media (max-width: 400px) {
   .d-flex {
-    flex-direction: column;
-    gap: 16px;
+    flex-direction: row;
+    gap: 0px;
   }
 }
 </style>

@@ -10,8 +10,16 @@ const loading = ref(true);
 const router = useRouter();
 
 const searchQuery = ref("");
-// Changed to an empty array for multiple selection
+
 const selectedCategories = ref([]); 
+
+const selectedColorType = ref("all"); 
+
+const colorOptions = [
+  { title: 'Visi', value: 'all' },
+  { title: 'Krāsaini', value: 'color' },
+  { title: 'Melnbalti', value: 'bw' }
+];
 
 const fetchData = async () => {
   try {
@@ -31,26 +39,35 @@ const fetchData = async () => {
 };
 
 const filteredDesigns = computed(() => {
-  let filtered = designs.value.filter((design) => {
-    // 1. Filter by Name
+  // 1. Create the filtered list first
+  const filtered = designs.value.filter((design) => {
+    
     const matchesName = design.name
       .toLowerCase()
       .includes(searchQuery.value.toLowerCase());
 
-    // 2. Filter by Category (OR logic: show if at least one category matches)
+    // filter by category
     const matchesCategory = 
       selectedCategories.value.length === 0 || 
       (design.categories && design.categories.some(cat => selectedCategories.value.includes(cat.id)));
 
-    return matchesName && matchesCategory;
+    // filter by color
+    let matchesColor = true;
+    if (selectedColorType.value === 'color') {
+      matchesColor = design.is_color === true || design.is_color === 1;
+    } else if (selectedColorType.value === 'bw') {
+      matchesColor = design.is_color === false || design.is_color === 0;
+    }
+
+    return matchesName && matchesCategory && matchesColor;
   });
 
-  // 3. Rank by relevance (The more matching categories, the higher it appears)
+  // sort the filtered results
   if (selectedCategories.value.length > 0) {
-    return filtered.slice().sort((a, b) => {
+    return filtered.sort((a, b) => {
       const aMatches = a.categories?.filter(c => selectedCategories.value.includes(c.id)).length || 0;
       const bMatches = b.categories?.filter(c => selectedCategories.value.includes(c.id)).length || 0;
-      return bMatches - aMatches; // Descending order
+      return bMatches - aMatches;
     });
   }
 
@@ -70,25 +87,29 @@ onMounted(fetchData);
 
 <template>
   <VContainer fluid style="max-width: 1400px; padding-left: 16px; padding-right: 16px;">
-    <h1 class="mb-4 mt-4">Dizaini</h1>
+    <h1 class="mb-4 mt-8 font-weight-bold">Dizaini</h1>
 
-    <VRow>
-      <VCol cols="12" md="6">
+    <VRow class="mb-8">
+      <VCol cols="12" md="4">
         <VTextField
           v-model="searchQuery"
           label="Meklēt pēc nosaukuma..."
           prepend-inner-icon="mdi-magnify"
+          variant="outlined"
+          density="comfortable"
           clearable
           hide-details
         />
       </VCol>
-      <VCol cols="12" md="6">
+      <VCol cols="12" md="5">
         <VSelect
           v-model="selectedCategories"
           :items="categories"
           item-title="name"
           item-value="id"
           label="Filtrēt pēc kategorijām"
+          variant="outlined"
+          density="comfortable"
           multiple
           chips
           closable-chips
@@ -96,10 +117,24 @@ onMounted(fetchData);
           hide-details
         />
       </VCol>
+      <VCol cols="12" md="3">
+        <VSelect
+          v-model="selectedColorType"
+          :items="colorOptions"
+          label="Tips"
+          variant="outlined"
+          density="comfortable"
+          hide-details
+        />
+      </VCol>
     </VRow>
 
-    <div v-if="loading" class="text-center pa-10">Ielādē...</div>
-    <div v-else-if="filteredDesigns.length === 0" class="text-center pa-10">Nekas netika atrasts.</div>
+    <div v-if="loading" class="text-center pa-10">
+      <v-progress-circular indeterminate color="primary"></v-progress-circular>
+    </div>
+    <div v-else-if="filteredDesigns.length === 0" class="text-center pa-10 text-medium-emphasis">
+      Nekas netika atrasts.
+    </div>
 
     <VRow v-else>
       <VCol
@@ -109,23 +144,26 @@ onMounted(fetchData);
         sm="6"
         md="4"
         lg="3"
+        class="pa-3 d-flex justify-center"
       >
         <VCard
-          class="design-card d-flex flex-column"
+          color="surface"
+          class="design-card rounded-xl pa-4 d-flex flex-column h-100"
           @click="goToDesign(design.id)"
-          elevation="2"
         >
-          <VCardTitle class="text-center text-subtitle-1 font-weight-bold">
+          <VCardTitle class="text-center font-weight-bold pt-0 pb-4 text-subtitle-1 text-truncate">
             {{ design.name }}
           </VCardTitle>
 
-          <VCardText class="preview-container">
-            <img
-              :src="design.file_url"
-              class="design-img"
-              alt="Design SVG"
-            />
-          </VCardText>
+          <div class="white-box-wrapper">
+            <div class="white-box-inner">
+              <img 
+                :src="design.file_url" 
+                :alt="design.name" 
+                class="responsive-svg" 
+              />
+            </div>
+          </div>
         </VCard>
       </VCol>
     </VRow>
@@ -133,38 +171,47 @@ onMounted(fetchData);
 </template>
 
 <style scoped>
-/* Prevent the card from ever pushing the width */
 .design-card {
-  background-color: #bdbdbd !important;
-  height: 350px;
-  width: 100%; /* Ensure it stays inside the VCol */
-  overflow: hidden;
-  transition: transform 0.2s ease, background-color 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  width: 100%;
+  /* Removed hardcoded background-color to let Vuetify theme handle it */
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
 }
 
 .design-card:hover {
-  background-color: #e0e0e0 !important; 
-  transform: translateY(-5px);
+  transform: translateY(-8px);
+    background-color: rgba(var(--v-theme-primary), 0.8) !important; 
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1) !important;
 }
 
-.preview-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: white;
-  margin: 8px;
-  border-radius: 4px;
-  flex-grow: 1;
-  /* CRITICAL: This prevents the image from expanding the card width */
-  min-width: 0; 
-  min-height: 0;
+/* MATCHING HOME.VUE BOX LOGIC */
+.white-box-wrapper {
+  width: 100%;
+  position: relative;
+  padding-top: 100%; /* Perfect Square */
+  background-color: white; /* Keep white so SVGs look clean regardless of theme */
+  border-radius: 12px;
   overflow: hidden;
 }
 
-.design-img {
+.white-box-inner {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12%; 
+}
+
+.responsive-svg {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+  display: block;
+}
+
+.v-card-title {
   display: block;
 }
 </style>

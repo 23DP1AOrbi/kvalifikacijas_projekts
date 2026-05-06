@@ -35,7 +35,7 @@
         </v-btn>
       </div>
 
-      <v-container fluid class="pa-0"> 
+      <v-container fluid class="pa-0" color="" > 
         <v-row v-if="loading">
           <v-col v-for="n in 3" :key="n" cols="12" sm="4" class="pa-2">
             <v-skeleton-loader type="card" height="350"></v-skeleton-loader>
@@ -51,7 +51,7 @@
               class="pa-2 d-flex justify-center"
             >
               <v-card 
-                color="secondary" 
+                color="surface" 
                 class="design-card rounded-xl pa-4 d-flex flex-column h-100"
                 @click="goToDesign(design.id)"
               >
@@ -137,7 +137,7 @@ onMounted(fetchLatestDesigns);
 .design-card:hover {
   transform: translateY(-8px);
   box-shadow: 0 12px 24px rgba(0,0,0,0.15) !important;
-  background-color: #e0e0e0 !important; /* Slight lighten like your Gallery design */
+  background-color: rgba(var(--v-theme-primary), 0.8) !important; 
 }
 
 .white-box-wrapper {

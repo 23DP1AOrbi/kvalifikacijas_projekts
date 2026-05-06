@@ -33,6 +33,22 @@
           :initial-categories="design.categories" 
         />
 
+        <div class="mt-6">
+          <div class="text-subtitle-2 mb-2">Mainīt krāsu tipu</div>
+          <v-btn-toggle
+            v-model="editIsColor"
+            mandatory
+            color="primary"
+            variant="outlined"
+            divided
+            @update:model-value="updateDesignColor"
+          >
+            <v-btn :value="1" prepend-icon="mdi-palette">Krāsains</v-btn>
+            <v-btn :value="0" prepend-icon="mdi-format-color-marker-cancel">Melnbalts</v-btn>
+          </v-btn-toggle>
+          <v-progress-linear v-if="savingColor" indeterminate color="primary" class="mt-2" />
+        </div>
+
         <v-card class="mt-4 border-error" variant="outlined">
           <v-card-text class="d-flex align-center justify-space-between">
             <div>
@@ -54,7 +70,6 @@
             />
     
 
-    <!-- <v-loader v-else /> -->
   </v-container>
 </template>
 
@@ -72,10 +87,31 @@ const editName = ref('');
 const savingName = ref(false);
 const confirmAlert = ref(null);
 
+const editIsColor = ref(1);
+const savingColor = ref(false);
+
 const fetchDesign = async () => {
   const res = await axios.get(`/api/dizaini/${route.params.id}`);
   design.value = res.data;
   editName.value = res.data.name;
+  // convert boolean value to a number
+  editIsColor.value = Number(res.data.is_color);
+};
+
+const updateDesignColor = async (newValue) => {
+  savingColor.value = true;
+  try {
+    await axios.post(`/api/dizaini/${design.value.id}`, { 
+      is_color: newValue,
+      _method: 'PATCH'
+    });
+    design.value.is_color = newValue;
+  } catch (err) {
+    console.error("Neizdevās saglabāt krāsu tipu", err);
+    alert("Kļūda saglabājot!");
+  } finally {
+    savingColor.value = false;
+  }
 };
 
 const updateDesignName = async () => {
@@ -83,11 +119,10 @@ const updateDesignName = async () => {
   if (!editName.value || editName.value === design.value.name) return;
   savingName.value = true;
   try {
-    // await axios.get("/sanctum/csrf-cookie");
 
    const res = await axios.post(`/api/dizaini/${design.value.id}`, { 
       name: editName.value,
-      _method: 'PATCH' // Laravel recognizes this as a PATCH request
+      _method: 'PATCH'
     });
 
     design.value.name = editName.value;

@@ -1,14 +1,11 @@
 <template>
-  <v-container>
-    <v-card class="pa-6" max-width="600">
-      <v-card-title>Augšupielādēt Jaunu Dizainu</v-card-title>
+  <v-container fluid class="fill-height d-flex align-center justify-center">
+    <v-card class="pa-6 pa-sm-6 mx-auto" max-width="600" width="100%">
+      <v-card-title class="text-center text-h5 text-sm-h4 font-weight-bold mb-6 text-wrap">
+        Augšupielādēt Jaunu Dizainu
+      </v-card-title>
       
       <v-form @submit.prevent="uploadDesign">
-        <div v-if="previewUrl" class="preview-box mb-4">
-          <p class="text-caption">Priekšskatījums:</p>
-          <div v-html="previewUrl" class="svg-preview"></div>
-        </div>
-
         <v-text-field 
           v-model="name" 
           label="Dizaina Nosaukums" 
@@ -39,6 +36,23 @@
           class="mt-4"
         />
 
+        <div class="mt-6 d-flex flex-column flex-sm-row align-sm-center ga-4">
+          <div class="text-subtitle-1 text-sm-subtitle-2 text-medium-emphasis">
+            Dizaina tips:
+          </div>
+          <v-btn-toggle
+            v-model="isColor"
+            mandatory
+            color="primary"
+            variant="outlined"
+            divided
+            class="custom-toggle"
+          >
+            <v-btn :value="1" prepend-icon="mdi-palette">Krāsains</v-btn>
+            <v-btn :value="0" prepend-icon="mdi-format-color-marker-cancel">Melnbalts</v-btn>
+          </v-btn-toggle>
+        </div>
+
         <v-btn 
           type="submit" 
           color="success" 
@@ -59,6 +73,8 @@ import axios from '../bootstrap.js';
 
 const name = ref('');
 const file = ref(null);
+const isColor = ref(1);
+
 const previewUrl = ref('');
 const categories = ref([]);
 const selectedCategories = ref([]);
@@ -75,6 +91,7 @@ onMounted(async () => {
 const clearFile = () => {
   file.value = null;
   previewUrl.value = '';
+  name.value = '';
 };
 
 const onFileChange = (e) => {
@@ -85,22 +102,20 @@ const onFileChange = (e) => {
     return;
   }
 
-  // Strict Validation
   const isSvg = selectedFile.type === 'image/svg+xml' || selectedFile.name.toLowerCase().endsWith('.svg');
   
   if (!isSvg) {
     alert('Kļūda: Lūdzu, izvēlieties derīgu SVG failu!');
-    e.target.value = ""; // Clears the actual input DOM element
+    e.target.value = ""; 
     clearFile();
     return;
   }
 
   file.value = selectedFile;
 
-  // Generate Preview
   const reader = new FileReader();
   reader.onload = (f) => {
-    // Basic security: ensure the result looks like an SVG tag
+    // checks if file is an svg
     if (f.target.result.includes('<svg')) {
       previewUrl.value = f.target.result;
     } else {
@@ -120,6 +135,7 @@ const uploadDesign = async () => {
   const formData = new FormData();
   formData.append('name', name.value);
   formData.append('image', file.value);
+  formData.append('is_color', isColor.value);
   
   selectedCategories.value.forEach(id => {
     formData.append('category_ids[]', id);
@@ -129,8 +145,8 @@ const uploadDesign = async () => {
     await axios.post('/api/dizaini', formData);
     alert('SVG augšupielādēts veiksmīgi!');
     
-    // Reset form
     name.value = '';
+    isColor.value = 1;
     clearFile();
     selectedCategories.value = [];
   } catch (err) {
@@ -145,20 +161,26 @@ const uploadDesign = async () => {
 </script>
 
 <style scoped>
-.preview-box {
-  border: 1px dashed #ccc;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: #f9f9f9;
-  min-height: 100px;
+
+.custom-toggle {
+  height: auto !important; 
+  min-height: 44px;
+  overflow: hidden; 
+  /* display: flex; */
+  width: 100%;
 }
-/* Ensure the injected SVG behaves within the box */
-.svg-preview :deep(svg) {
-  max-width: 100%;
-  max-height: 200px;
-  width: auto;
-  height: auto;
+
+.custom-toggle .v-btn {
+  flex: 1 1 auto;
+  padding: 8px 16px !important;
+  text-transform: none;
+  letter-spacing: normal;
+  height: 44px !important;
 }
+
+.text-wrap {
+  white-space: normal;
+  line-height: 1.2;
+}
+
 </style>

@@ -1,4 +1,3 @@
-// resources/js/plugins/vuetify.js
 import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
@@ -12,18 +11,18 @@ const vuetify = createVuetify({
       light: {
         dark: false,
         colors: {
-          background: '#F1F5F9', 
+          background: '#F0F9FF', 
           surface: '#FFFFFF',    
-          primary: '#0F172A',    
-          secondary: '#475569',  
-          accent: '#2563EB',     
-          error: '#EF4444',
-          info: '#3B82F6',
-          success: '#22C55E',
+          primary: '#075985',    
+          secondary: '#64748B',  
+          accent: '#0EA5E9',     
+          error: '#E11D48',
+          info: '#0284C7',
+          success: '#10B981',
           warning: '#F59E0B',
         },
         variables: {
-          'border-color': '#CBD5E1',
+          'border-color': '#BAE6FD',
           'hover-opacity': 0.04,
           'focus-opacity': 0.10,
           'selected-opacity': 0.08,
