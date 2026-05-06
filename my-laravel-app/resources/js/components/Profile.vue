@@ -10,7 +10,10 @@
           @updated="fetchUserData" 
         />
 
-        <ProjectList />
+        <template v-if="user">
+          <AdminStats v-if="user.role === 'admin'" />
+          <ProjectList v-else />
+        </template>
       </v-col>
     </v-row>
   </v-container>
@@ -19,8 +22,9 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import axios from "../bootstrap.js";
-import ProfileInfo from "./ProfileInfo.vue"; // Adjust paths
+import ProfileInfo from "./ProfileInfo.vue"; 
 import ProjectList from "./ProjectList.vue";
+import AdminStats from "./AdminStats.vue";
 
 const user = ref(null);
 

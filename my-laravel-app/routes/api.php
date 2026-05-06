@@ -42,4 +42,7 @@ Route::middleware(['web', 'auth:sanctum', AdminMiddleware::class])->group(functi
     Route::delete('/dizaini/{id}', [DesignController::class, 'destroy']);
     Route::patch('/dizaini/{design}', [DesignController::class, 'update']);
     Route::post('/dizaini/{design}/sync-categories', [DesignController::class, 'syncCategories']);
+
+    // Stats
+    Route::get('/stats', [DesignController::class, 'getStats']);
 });

@@ -15,6 +15,11 @@ class Design extends Model
         'is_color',
     ];
 
+    public function projects()
+    {
+        return $this->hasMany(Project::class);
+    }
+
     public function categories()
     {
         return $this->belongsToMany(Category::class);

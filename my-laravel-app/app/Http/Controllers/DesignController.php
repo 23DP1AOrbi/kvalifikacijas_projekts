@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Design;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class DesignController extends Controller
 {
@@ -102,5 +103,32 @@ class DesignController extends Controller
         $design->categories()->sync($data['category_ids'] ?? []);
 
         return response()->json(['message' => 'Categories synced successfully']);
+    }
+
+    public function getStats(Request $request)
+    {
+        if ($request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $totalDesigns = \App\Models\Design::count();
+        $totalCategories = \App\Models\Category::count();
+        
+        // calculates the average usage of categories per  design
+        $pivotCount = DB::table('category_design')->count();
+        $avgCategories = $totalDesigns > 0 ? round($pivotCount / $totalDesigns, 1) : 0;
+
+        // shows the yop 5 most saved designs as user projects
+        $topDesigns = \App\Models\Design::withCount('projects')
+            ->orderBy('projects_count', 'desc')
+            ->take(5)
+            ->get(['name', 'projects_count']);
+
+        return response()->json([
+            'total_designs' => $totalDesigns,
+            'total_categories' => $totalCategories,
+            'avg_categories' => $avgCategories,
+            'top_designs' => $topDesigns
+        ]);
     }
 }

@@ -26,27 +26,6 @@
       </v-col>
     </v-row>
 
-    <v-row justify="center" class="mb-6">
-    <v-col cols="8" md="10">
-      <v-card variant="tonal" color="primary" class="pa-4">
-        <v-row class="text-center">
-          <v-col cols="8">
-            <div class="text-h6">{{ categories.length }}</div>
-            <div class="text-caption">Kategorijas kopā</div>
-          </v-col>
-          <!-- <v-col cols="4">
-            <div class="text-h6">{{ totalDesigns }}</div>
-            <div class="text-caption">Dizaini kopā</div>
-          </v-col>
-          <v-col cols="4">
-            <div class="text-h6">{{ avgDesigns }}</div>
-            <div class="text-caption">Vidēji dizaini/kat.</div>
-          </v-col> -->
-        </v-row>
-      </v-card>
-    </v-col>
-  </v-row>
-
     <div class="d-flex justify-center flex-wrap gap-3">
       <v-chip 
         v-for="cat in filteredCategories" 
