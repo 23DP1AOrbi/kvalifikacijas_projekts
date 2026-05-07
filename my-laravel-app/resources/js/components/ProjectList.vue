@@ -9,7 +9,7 @@
     >
       Mani Projekti
     </v-btn>
-    
+    <!-- later -->
     <!-- <v-btn variant="text" prepend-icon="mdi-heart" color="error">Favorīti</v-btn> -->
     
     <v-btn 
@@ -35,7 +35,7 @@
   <v-divider class="mb-6"></v-divider>
 
   <v-row v-if="filteredProjects.length > 0">
-    <v-col v-for="project in filteredProjects" :key="project.id" cols="12" sm="6" md="8">
+    <v-col v-for="project in filteredProjects" :key="project.id" cols="12" sm="6" md="6">
               <v-card 
                 variant="outlined" 
                 class="project-card clickable-card"
@@ -135,13 +135,12 @@ const fetchProjects = async () => {
   projectsLoading.value = true;
   try {
     const res = await axios.get("/api/projects");
-    // We create a local copy first
+
     const projectsData = res.data;
 
-    // Use Promise.all to wait for all previews to finish before assigning to the ref
+    // waits for all the previews to load
     await Promise.all(projectsData.map(project => renderProjectPreview(project)));
     
-    // Assign the fully populated array all at once
     projects.value = projectsData;
   } catch (err) {
     console.error("Neizdevās ielādēt projektus", err);
@@ -161,29 +160,28 @@ const renderProjectPreview = async (project) => {
 
     if (!svgEl || svgEl.nodeName !== "svg") return;
 
-    // 1. Standardize ViewBox
-    const w = svgEl.getAttribute('width');
-    const h = svgEl.getAttribute('height');
-    if (!svgEl.getAttribute('viewBox') && w && h) {
-      svgEl.setAttribute('viewBox', `0 0 ${w.replace('px', '')} ${h.replace('px', '')}`);
-    }
-    svgEl.removeAttribute('width');
-    svgEl.removeAttribute('height');
+    // viewbox sizing
+    // const w = svgEl.getAttribute('width');
+    // const h = svgEl.getAttribute('height');
+    // if (!svgEl.getAttribute('viewBox') && w && h) {
+    //   svgEl.setAttribute('viewBox', `0 0 ${w.replace('px', '')} ${h.replace('px', '')}`);
+    // }
+    // svgEl.removeAttribute('width');
+    // svgEl.removeAttribute('height');
 
-    // 2. IMPORTANT: Manually assign IDs to shapes based on index
-    // This replicates how your editor likely generates "svg-shape-N"
+    // adds ids to all shapes in the vector
     const shapes = svgEl.querySelectorAll('path, rect, circle, polygon, ellipse, text');
     shapes.forEach((shape, index) => {
       shape.setAttribute('id', `svg-shape-${index}`);
     });
 
-    // 3. Parse color_data
+    // changes color_data to json
     let colors = project.color_data;
     if (typeof colors === 'string') {
       try { colors = JSON.parse(colors); } catch (e) { colors = null; }
     }
 
-    // 4. Inject saved colors
+    // inserts the changed colors into the original designs
     if (colors && typeof colors === 'object') {
       Object.entries(colors).forEach(([id, color]) => {
         const el = svgEl.getElementById(id);
@@ -193,10 +191,11 @@ const renderProjectPreview = async (project) => {
           el.style.fill = color;
           
           // Handle strokes for lines/outlines
-          if (el.getAttribute('stroke') && el.getAttribute('stroke') !== 'none') {
-             el.setAttribute("stroke", color);
-             el.style.stroke = color;
-          }
+          // 
+          // if (el.getAttribute('stroke') && el.getAttribute('stroke') !== 'none') {
+          //    el.setAttribute("stroke", color);
+          //    el.style.stroke = color;
+          // }
           
           el.style.opacity = "1"; 
         }
@@ -227,7 +226,7 @@ const selectedProject = ref(null);
 
 const openRenameDialog = (project) => {
   selectedProject.value = project;
-  newName.value = project.name; // Fill the text field with current name
+  newName.value = project.name; 
   renameDialog.value = true;
 };
 
@@ -237,12 +236,12 @@ const confirmRename = async () => {
   
   try {
     await axios.put(`/api/projects/${selectedProject.value.id}`, {
-      design_id: selectedProject.value.design_id, // Added this line
+      design_id: selectedProject.value.design_id,
       name: newName.value,
       color_data: selectedProject.value.color_data 
     });
     
-    // Find the project in our local 'projects' array and update it
+    // tells which project name to update by id
     const index = projects.value.findIndex(p => p.id === selectedProject.value.id);
     if (index !== -1) {
       projects.value[index].name = newName.value;
@@ -261,20 +260,18 @@ const confirmRename = async () => {
 const currentFilter = ref('all'); 
 const sortOrder = ref('desc');
 
-// MODIFIED: Sorting button now works for both tabs with different logic
 const filteredProjects = computed(() => {
   let list = [...projects.value];
 
-  // Always apply sorting based on current filter and sortOrder
   if (currentFilter.value === 'recent') {
-    // "Nesenie" - sort by created_at (when project was added/created)
+    // nesenie - sorts by creation date
     list.sort((a, b) => {
       const dateA = new Date(a.created_at);
       const dateB = new Date(b.created_at);
       return sortOrder.value === 'desc' ? dateB - dateA : dateA - dateB;
     });
   } else {
-    // "Mani projekti" (all) - sort by updated_at (last edited)
+    // mani projekti - sorts by updated date & time
     list.sort((a, b) => {
       const dateA = new Date(a.updated_at);
       const dateB = new Date(b.updated_at);
@@ -307,8 +304,6 @@ onMounted(fetchProjects);
   border-radius: 8px;
   background: white;
   border: 1px solid rgba(0,0,0,0.08);
-  /* Force GPU acceleration to stop the lag */
-  transform: translateZ(0);
   backface-visibility: hidden;
 }
 
@@ -399,7 +394,6 @@ onMounted(fetchProjects);
   height: auto !important;
   max-width: 100%;
   max-height: 100%;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));
   shape-rendering: geometricPrecision;
 }
 

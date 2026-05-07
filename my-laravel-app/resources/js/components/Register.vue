@@ -7,17 +7,16 @@
           <v-card class="auth-card pa-5 pa-sm-8 rounded-lg elevation-12 mx-auto">
             <h1 class="text-h5 font-weight-bold text-center mb-4">Izveidot kontu</h1>
             
-            <v-form @submit.prevent="registerUser" v-model="isFormValid">
+            <v-form @submit.prevent="registerUser" v-model="isFormValid" ref="formRef">
               <v-text-field
                 v-model="form.name"
                 label="Lietotājvārds"
                 prepend-inner-icon="mdi-account-outline"
                 variant="filled"
                 density="compact"
-                color="primary"
-                hide-details="auto"
-                required
+                :rules="[v => !!v || 'Lietotājvārds ir obligāts']"
                 :error-messages="errors.name"
+                @input="errors.name = []"
                 class="mb-2"
               />
 
@@ -28,10 +27,12 @@
                 prepend-inner-icon="mdi-email-outline"
                 variant="filled"
                 density="compact"
-                color="primary"
-                hide-details="auto"
-                required
+                :rules="[
+                  v => !!v || 'E-pasts ir obligāts',
+                  v => /.+@.+\..+/.test(v) || 'E-pastam jābūt derīgam'
+                ]"
                 :error-messages="errors.email"
+                @input="errors.email = []"
                 class="mb-2"
               />
 
@@ -44,10 +45,12 @@
                 @click:append-inner="showPassword = !showPassword"
                 variant="filled"
                 density="compact"
-                color="primary"
-                hide-details="auto"
-                required
+                :rules="[
+                  v => !!v || 'Parole ir obligāta',
+                  v => v.length >= 8 || 'Parolei jābūt vismaz 8 simbolus garai'
+                ]"
                 :error-messages="errors.password"
+                @input="errors.password = []"
                 class="mb-2"
               />
 
@@ -60,9 +63,10 @@
                 @click:append-inner="showConfirmPassword = !showConfirmPassword"
                 variant="filled"
                 density="compact"
-                color="primary"
-                hide-details="auto"
-                required
+                :rules="[
+                  v => !!v || 'Paroles apstiprinājums ir obligāts',
+                  v => v === form.password || 'Paroles nesakrīt'
+                ]"
                 class="mb-4"
               />
 
@@ -119,6 +123,7 @@ import { register } from "../services/auth";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
+const formRef = ref(null); // Reference to the form
 const isFormValid = ref(false);
 const loading = ref(false);
 const showPassword = ref(false);
@@ -131,11 +136,18 @@ const form = reactive({
   password_confirmation: "",
 });
 
-const errors = ref({});
+const errors = ref({
+  name: [],
+  email: [],
+  password: []
+});
 const successMessage = ref("");
 
 const registerUser = async () => {
-  errors.value = {};
+  // Validate before sending
+  if (!isFormValid.value) return;
+
+  errors.value = {}; // Clear previous errors
   successMessage.value = "";
   loading.value = true;
 
@@ -143,15 +155,15 @@ const registerUser = async () => {
     await register(form);
     successMessage.value = "Lietotājs veiksmīgi pievienots!";
     
-    // Redirect after a short delay so user sees the success message
-    // setTimeout(() => {
+    setTimeout(() => {
       router.push("/");
-    // }, 1500);
+    }, 1500);
   } catch (error) {
     if (error.response?.status === 422) {
+      // Map Laravel errors to our error object
       errors.value = error.response.data.errors;
     } else {
-      console.error(error);
+      console.error("Server error:", error);
     }
   } finally {
     loading.value = false;
