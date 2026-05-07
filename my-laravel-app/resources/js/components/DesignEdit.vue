@@ -41,6 +41,7 @@
             color="primary"
             variant="outlined"
             divided
+            class="custom-toggle"
             @update:model-value="updateDesignColor"
           >
             <v-btn :value="1" prepend-icon="mdi-palette">Krāsains</v-btn>
@@ -68,8 +69,6 @@
                 :item-name="design?.name" 
                 @confirm="executeDelete" 
             />
-    
-
   </v-container>
 </template>
 
@@ -170,5 +169,21 @@ onMounted(fetchDesign);
 }
 .border-error {
   border: 1px solid rgb(var(--v-theme-error)) !important;
+}
+
+.custom-toggle {
+  height: auto !important; 
+  min-height: 44px;
+  overflow: hidden; 
+  /* display: flex; */
+  width: 100%;
+}
+
+.custom-toggle .v-btn {
+  flex: 1 1 auto;
+  padding: 8px 16px !important;
+  text-transform: none;
+  letter-spacing: normal;
+  height: 44px !important;
 }
 </style>

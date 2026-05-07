@@ -1,5 +1,5 @@
 <template>
-  <div class="login-page-wrapper">
+  <div class="auth-wrapper">
     <v-container>
       <v-row justify="center" align="center" density="compact">
         <v-col cols="12" sm="10" md="6" lg="5">
@@ -126,34 +126,31 @@ const loginUser = async () => {
 
 <style scoped>
 .auth-wrapper {
-  /* Using min-height: 100dvh (dynamic viewport height) for better mobile support */
-  min-height: calc(100dvh - 64px); 
+    min-height: calc(100dvh - 64px); 
   display: flex;
   align-items: center; 
   justify-content: center; 
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   width: 100%;
-  /* Critical: prevent horizontal scroll */
   overflow-x: hidden;
   padding: 12px; 
 }
 
 .auth-card {
   width: 100%;
-  max-width: 440px; /* Slimmer for better laptop/mobile fit */
+  max-width: 440px; 
 }
 
-/* Force elements to wrap if they are somehow wider than the phone */
 :deep(.v-card) {
   overflow: hidden !important;
 }
 
 @media (max-width: 600px) {
   .auth-card {
-    padding: 20px !important; /* Smaller padding on phones */
+    padding: 20px !important; 
   }
   h1 {
-    font-size: 1.5rem !important; /* Smaller title so it doesn't wrap weirdly */
+    font-size: 1.5rem !important; 
   }
 }
 </style>

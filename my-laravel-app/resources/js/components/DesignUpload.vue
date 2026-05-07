@@ -166,7 +166,6 @@ const uploadDesign = async () => {
   height: auto !important; 
   min-height: 44px;
   overflow: hidden; 
-  /* display: flex; */
   width: 100%;
 }
 

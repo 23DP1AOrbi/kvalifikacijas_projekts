@@ -20,7 +20,7 @@
           :items="categories"
           item-title="name"
           item-value="id"
-          label="Filtrēt pēc kategorijām"
+          label="Kategorijas"
           variant="outlined"
           density="comfortable"
           multiple
@@ -34,7 +34,7 @@
         <VSelect
           v-model="selectedColorType"
           :items="colorOptions"
-          label="Tips"
+          label="Krāsojums"
           variant="outlined"
           density="comfortable"
           hide-details
@@ -140,7 +140,7 @@ const fetchData = async () => {
 };
 
 const filteredDesigns = computed(() => {
-  // 1. Create the filtered list first
+  // create the filtered list first
   const filtered = designs.value.filter((design) => {
     
     const matchesName = design.name
