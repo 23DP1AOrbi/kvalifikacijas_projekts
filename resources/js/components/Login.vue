@@ -131,7 +131,7 @@ const loginUser = async () => {
 
 <style scoped>
 .auth-wrapper {
-    min-height: calc(100dvh - 64px); 
+  min-height: calc(100dvh - 64px); 
   display: flex;
   align-items: center; 
   justify-content: center; 
@@ -144,10 +144,6 @@ const loginUser = async () => {
 .auth-card {
   width: 100%;
   max-width: 440px; 
-}
-
-:deep(.v-card) {
-  overflow: hidden !important;
 }
 
 @media (max-width: 600px) {

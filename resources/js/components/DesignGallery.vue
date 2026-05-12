@@ -144,6 +144,7 @@ const filteredDesigns = computed(() => {
   // create the filtered list first
   const filtered = designs.value.filter((design) => {
     
+    // search for name
     const matchesName = design.name
       .toLowerCase()
       .includes(searchQuery.value.toLowerCase());
@@ -153,7 +154,7 @@ const filteredDesigns = computed(() => {
       selectedCategories.value.length === 0 || 
       (design.categories && design.categories.some(cat => selectedCategories.value.includes(cat.id)));
 
-    // filter by color
+    // filter by color type
     let matchesColor = true;
     if (selectedColorType.value === 'color') {
       matchesColor = design.is_color === true || design.is_color === 1;

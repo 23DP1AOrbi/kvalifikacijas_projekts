@@ -7,7 +7,7 @@
           <v-card class="auth-card pa-5 pa-sm-8 rounded-lg elevation-12 mx-auto">
             <h1 class="text-h5 font-weight-bold text-center mb-4">Izveidot kontu</h1>
             
-            <v-form @submit.prevent="registerUser" v-model="isFormValid" ref="formRef">
+            <v-form @submit.prevent="registerUser" v-model="isFormValid">
               <v-text-field
                 v-model="form.name"
                 label="Lietotājvārds"
@@ -123,7 +123,6 @@ import { register } from "../services/auth";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
-const formRef = ref(null);
 const isFormValid = ref(false);
 const loading = ref(false);
 const showPassword = ref(false);
@@ -156,8 +155,8 @@ const registerUser = async () => {
     successMessage.value = "Lietotājs veiksmīgi pievienots!";
     
     setTimeout(() => {
-      router.push("/");
-    }, 1500);
+      router.push("/dizaini");
+    }, 1000);
   } catch (error) {
       console.error("Server error:", error);
   } finally {

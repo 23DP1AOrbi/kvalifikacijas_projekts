@@ -93,8 +93,7 @@ const fetchDesign = async () => {
   const res = await axios.get(`/api/dizaini/${route.params.id}`);
   design.value = res.data;
   editName.value = res.data.name;
-  // convert boolean value to a number
-  editIsColor.value = Number(res.data.is_color);
+  editIsColor.value = res.data.is_color;
 };
 
 const updateDesignColor = async (newValue) => {
@@ -145,7 +144,7 @@ const deleteDesign = async () => {
 const executeDelete = async () => {
   try {
     await axios.delete(`/api/dizaini/${design.value.id}`);
-    router.push('/dizaini'); // Redirect after success
+    router.push('/dizaini');
   } catch (err) {
     console.error("Dzēšana neizdevās:", err);
   }
@@ -175,7 +174,6 @@ onMounted(fetchDesign);
   height: auto !important; 
   min-height: 44px;
   overflow: hidden; 
-  /* display: flex; */
   width: 100%;
 }
 

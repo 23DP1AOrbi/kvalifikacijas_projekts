@@ -160,15 +160,6 @@ const renderProjectPreview = async (project) => {
 
     if (!svgEl || svgEl.nodeName !== "svg") return;
 
-    // viewbox sizing
-    // const w = svgEl.getAttribute('width');
-    // const h = svgEl.getAttribute('height');
-    // if (!svgEl.getAttribute('viewBox') && w && h) {
-    //   svgEl.setAttribute('viewBox', `0 0 ${w.replace('px', '')} ${h.replace('px', '')}`);
-    // }
-    // svgEl.removeAttribute('width');
-    // svgEl.removeAttribute('height');
-
     // adds ids to all shapes in the vector
     const shapes = svgEl.querySelectorAll('path, rect, circle, polygon, ellipse, text');
     shapes.forEach((shape, index) => {
@@ -189,14 +180,6 @@ const renderProjectPreview = async (project) => {
         if (el) {
           el.setAttribute("fill", color);
           el.style.fill = color;
-          
-          // Handle strokes for lines/outlines
-          // 
-          // if (el.getAttribute('stroke') && el.getAttribute('stroke') !== 'none') {
-          //    el.setAttribute("stroke", color);
-          //    el.style.stroke = color;
-          // }
-          
           el.style.opacity = "1"; 
         }
       });

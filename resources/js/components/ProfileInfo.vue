@@ -25,8 +25,7 @@
     <v-form 
       v-if="isEditing" 
       @submit.prevent="updateProfile" 
-      v-model="isFormValid" 
-      ref="formRef" 
+      v-model="isFormValid"
       class="mt-4"
     >
       <v-text-field
@@ -118,7 +117,6 @@ import axios from "../bootstrap.js";
 const props = defineProps(['user']);
 const emit = defineEmits(['updated']);
 
-const formRef = ref(null);
 const isEditing = ref(false);
 const isFormValid = ref(false);
 const loading = ref(false);

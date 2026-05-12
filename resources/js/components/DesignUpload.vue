@@ -75,7 +75,6 @@ const name = ref('');
 const file = ref(null);
 const isColor = ref(1);
 
-const previewUrl = ref('');
 const categories = ref([]);
 const selectedCategories = ref([]);
 
@@ -90,7 +89,6 @@ onMounted(async () => {
 
 const clearFile = () => {
   file.value = null;
-  previewUrl.value = '';
   name.value = '';
 };
 
@@ -102,6 +100,7 @@ const onFileChange = (e) => {
     return;
   }
 
+  // checks if file is an svg
   const isSvg = selectedFile.type === 'image/svg+xml' || selectedFile.name.toLowerCase().endsWith('.svg');
   
   if (!isSvg) {
@@ -112,18 +111,6 @@ const onFileChange = (e) => {
   }
 
   file.value = selectedFile;
-
-  const reader = new FileReader();
-  reader.onload = (f) => {
-    // checks if file is an svg
-    if (f.target.result.includes('<svg')) {
-      previewUrl.value = f.target.result;
-    } else {
-      alert("Fails nav derīgs SVG saturs.");
-      clearFile();
-    }
-  };
-  reader.readAsText(selectedFile);
 };
 
 const uploadDesign = async () => {

@@ -31,7 +31,3 @@
     </v-row>
   </v-container>
 </template>
-
-<!-- <script setup>
-// No logic needed, purely UI
-</script> -->

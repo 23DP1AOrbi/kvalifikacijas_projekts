@@ -146,7 +146,6 @@ const handleLogout = async () => {
   try {
     await logout();
     drawer.value = false;
-    router.push('/pieslegties');
   } catch (err) {
     console.error("Logout failed:", err);
   }

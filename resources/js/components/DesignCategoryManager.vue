@@ -60,7 +60,6 @@ const loading = ref(false);
 const statusMsg = ref('');
 const statusType = ref('success');
 
-// Initialize selected IDs from props
 onMounted(async () => {
   selectedIds.value = props.initialCategories.map(cat => cat.id);
   fetchGlobalCategories();
@@ -80,8 +79,6 @@ const updateCategories = async (newSelection) => {
   statusMsg.value = '';
   
   try {
-    // Assuming your backend has a sync endpoint: /api/dizaini/{id}/categories
-    // Or a general update endpoint that accepts category_ids
     await axios.post(`/api/dizaini/${props.designId}/sync-categories`, {
       category_ids: newSelection
     });
@@ -94,12 +91,10 @@ const updateCategories = async (newSelection) => {
     console.error(err);
   } finally {
     loading.value = false;
-    // Hide message after 3 seconds
     setTimeout(() => statusMsg.value = '', 3000);
   }
 };
 
-// Sync if props change externally
 watch(() => props.initialCategories, (newVal) => {
   selectedIds.value = newVal.map(cat => cat.id);
 });
