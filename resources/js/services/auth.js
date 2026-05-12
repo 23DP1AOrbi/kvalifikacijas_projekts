@@ -7,7 +7,7 @@ export const user = ref(null);
 // fetch current user from laravel
 export const fetchUser = async () => {
   try {
-    // await axios.get('/sanctum/csrf-cookie');
+    await axios.get('/sanctum/csrf-cookie');
 
     const res = await axios.get("/api/user");
     // Only assign if res.data has an id
@@ -23,13 +23,13 @@ export const fetchUser = async () => {
 };
 
 export const register = async (form) => {
-  // await axios.get("/sanctum/csrf-cookie");   
+  await axios.get("/sanctum/csrf-cookie");   
   await axios.post("/register", form);       
   await fetchUser();                        
 };
 // login
 export const login = async (form) => {
-  // await axios.get("/sanctum/csrf-cookie");
+  await axios.get("/sanctum/csrf-cookie");
   const res = await axios.post("/login", form);
   await fetchUser();
   return res;
