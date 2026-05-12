@@ -17,7 +17,10 @@
                 variant="filled"
                 color="primary"
                 required
-                :rules="[v => !!v || 'E-pasts ir obligāts']"
+                :rules="[
+                  v => !!v || 'E-pasts ir obligāts',
+                  v => /.+@.+\..+/.test(v) || 'E-pastam jābūt derīgam'
+                ]"
                 class="mb-2"
               />
 
@@ -32,7 +35,9 @@
                 variant="filled"
                 color="primary"
                 required
-                :rules="[v => !!v || 'Parole ir obligāta']"
+                :rules="[
+                  v => !!v || 'Parole ir obligāta',
+                  v => v.length >= 8 || 'Jābūt vismaz 8 simboliem']"
                 class="mb-4"
               />
 

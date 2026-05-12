@@ -10,7 +10,7 @@ class ProjectController extends Controller
 {
     public function index()
     {
-        // Fetches projects belonging to the authenticated user
+        // gets projects that belong to the user
         $projects = Project::where('user_id', Auth::id())->latest()->get();
         return response()->json($projects);
     }
@@ -22,7 +22,7 @@ class ProjectController extends Controller
 
     public function store(Request $request)
     {
-        // 1. Double check the user is actually logged in
+        // make sure the user is loggen in
         if (!Auth::check()) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
@@ -33,7 +33,6 @@ class ProjectController extends Controller
             'color_data' => 'nullable|array',
         ]);
 
-        // 2. Use Auth::id() - it's a very reliable way to get the ID
         $project = Project::create([
             'user_id'   => Auth::id(), 
             'design_id' => $validated['design_id'],

@@ -12,14 +12,14 @@ class AuthController extends Controller
         $credentials = $request->only('email', 'password');
 
         if (Auth::attempt($credentials)) {
-            $request->session()->regenerate(); // important to prevent session fixation
+            $request->session()->regenerate();
             return response()->json([
                 'message' => 'Logged in successfully', 
                 'user' => Auth::user()
             ]);
         }
 
-        return response()->json(['message' => 'Nederīgi dati'], 401);
+        return response()->json(['message' => 'Parole vai e-pasts nesakrīt'], 401);
     
     }
 
@@ -35,14 +35,11 @@ class AuthController extends Controller
 
     public function user(Request $request)
     {
-        // dd(Auth::check(), Auth::user());
-        // return response()->json(Auth::user());
         if (!Auth::check()) {
                 return response()->json(null);
             }
 
         
         return response()->json(Auth::user());
-        // return response()->json($request->user());
     }
 }

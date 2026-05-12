@@ -8,7 +8,7 @@
           v-model="searchQuery"
           label="Meklēt pēc nosaukuma..."
           prepend-inner-icon="mdi-magnify"
-          variant="outlined"
+          variant="filled"
           density="comfortable"
           clearable
           hide-details
@@ -21,7 +21,7 @@
           item-title="name"
           item-value="id"
           label="Kategorijas"
-          variant="outlined"
+          variant="filled"
           density="comfortable"
           multiple
           chips
@@ -35,7 +35,7 @@
           v-model="selectedColorType"
           :items="colorOptions"
           label="Krāsojums"
-          variant="outlined"
+          variant="filled"
           density="comfortable"
           hide-details
         />
@@ -124,7 +124,7 @@ const colorOptions = [
 
 const fetchData = async () => {
   try {
-    await axios.get("/sanctum/csrf-cookie");
+    // await axios.get("/sanctum/csrf-cookie");
 
     const [designRes, catRes] = await Promise.all([
       axios.get("/api/dizaini"),
@@ -140,6 +140,7 @@ const fetchData = async () => {
 };
 
 const filteredDesigns = computed(() => {
+  
   // create the filtered list first
   const filtered = designs.value.filter((design) => {
     
@@ -162,15 +163,6 @@ const filteredDesigns = computed(() => {
 
     return matchesName && matchesCategory && matchesColor;
   });
-
-  // sort the filtered results
-  if (selectedCategories.value.length > 0) {
-    return filtered.sort((a, b) => {
-      const aMatches = a.categories?.filter(c => selectedCategories.value.includes(c.id)).length || 0;
-      const bMatches = b.categories?.filter(c => selectedCategories.value.includes(c.id)).length || 0;
-      return bMatches - aMatches;
-    });
-  }
 
   return filtered;
 });
@@ -207,7 +199,12 @@ onMounted(fetchData);
   width: 100%;
   position: relative;
   padding-top: 100%; 
-  background-color: white; /* Keep white so SVGs look clean regardless of theme */
+  background-color: white; 
+  background-image: linear-gradient(45deg, #fafafa 25%, transparent 25%), 
+                    linear-gradient(-45deg, #fafafa 25%, transparent 25%), 
+                    linear-gradient(45deg, transparent 75%, #fafafa 75%), 
+                    linear-gradient(-45deg, transparent 75%, #fafafa 75%);
+  background-size: 16px 16px;
   border-radius: 12px;
   overflow: hidden;
 }

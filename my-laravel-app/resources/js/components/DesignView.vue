@@ -9,12 +9,6 @@
       <v-card-text>
         <v-row>
           <v-col cols="12" md="3">
-            <DesignCategoryManager 
-              v-if="user?.role === 'admin'" 
-              :design-id="design.id" 
-              :initial-categories="design.categories" 
-              class="mb-4"
-            />
 
             <v-color-picker
               v-model="selectedColor"
@@ -130,18 +124,20 @@
 import { ref, onMounted, nextTick, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios from "../bootstrap.js";
-import DesignCategoryManager from './DesignCategoryManager.vue';
 import { user } from "../services/auth";
 
 const router = useRouter();
 const route = useRoute();
+
 const design = ref(null);
 const svgContent = ref('');
 const svgContainer = ref(null);
+
 const selectedColor = ref('#ff0000');
 const usedColors = ref([]);
 const MAX_HISTORY = 12;
 const colors = ref({});
+
 const undoStack = ref([]);
 const redoStack = ref([]);
 
@@ -175,7 +171,7 @@ const fetchDesign = async () => {
 
     await nextTick();
     await new Promise(resolve => setTimeout(resolve, 100));
-    // --- NEW: Check if we are opening a specific saved project ---
+    // if instead of design, it is a project
     if (route.query.project) {
       fetchProjectData(route.query.project);
     }
@@ -199,7 +195,7 @@ const fetchProjectData = async (projectId) => {
 
     colors.value = colorData || {};
     
-    // Apply colors to the SVG
+    // apply colors to the SVG
     applySavedColors();
   } catch (err) {
     console.error("Failed to load project colors:", err);
@@ -217,12 +213,12 @@ const setupSvgInteractions = async () => {
   const svg = svgContainer.value?.querySelector("svg");
   if (!svg) return;
 
-  // FIX: Ensure the SVG is responsive and doesn't cut off
+  // responsive svg
   svg.setAttribute('width', '100%');
   svg.setAttribute('height', '100%');
   svg.style.display = 'block';
   svg.style.maxWidth = '100%';
-  svg.style.maxHeight = '70vh'; // Prevents it from being taller than the screen
+  svg.style.maxHeight = '70vh'; 
 
   const elements = getColorableElements(svg);
   elements.forEach((el, index) => {
@@ -307,20 +303,26 @@ const projectName = ref('');
 const isSaving = ref(false);
 
 const saveProject = () => {
-  // If we have a project ID in the URL, it's an existing project
+  // if an existing project, no naming input
   if (route.query.project) {
-    // Skip the dialog and save immediately
-    projectName.value = design.value.name; // Keep existing name logic
+
+    projectName.value = design.value.name; 
     confirmSave();
   } else {
-    // If it's a fresh design, ask for a name
+    // if new project ask for a name
     projectName.value = design.value.name;
     saveDialog.value = true;
   }
 };
 
 const confirmSave = async () => {
-  if (!projectName.value && !route.query.project) return;
+  if (!projectName.value.trim() && !route.query.project) {
+    alert("Kļūda: Nedrīkst būt tukšs nosaukums!");
+    return;
+  } else if (255 < projectName.value.trim().length) {
+    alert("Kļūda: Nosaukums pārsniedz simobolu limitu!");
+    return;
+  }
  
   isSaving.value = true;
   try {
@@ -372,7 +374,7 @@ onMounted(fetchDesign);
   min-height: 400px;
 }
 
-/* Ensure the SVG scales within the container correctly */
+/* correct scaling for svg */
 :deep(svg) {
   width: 100%;
   height: auto;

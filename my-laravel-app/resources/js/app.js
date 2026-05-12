@@ -14,8 +14,6 @@ axios.defaults.withCredentials = true
 axios.defaults.withXSRFToken = true
 
 
-// createApp(App).use(router).use(vuetify).mount('#app')
-
 const initApp = async () => {
     await fetchUser();
 

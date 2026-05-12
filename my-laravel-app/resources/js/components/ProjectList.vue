@@ -231,7 +231,10 @@ const openRenameDialog = (project) => {
 };
 
 const confirmRename = async () => {
-  if (!newName.value || !selectedProject.value) return;
+  if (!newName.value.trim() || !selectedProject.value) {
+    alert("Kļūda: Nosaukums nevar būt tukšs!");
+    return;
+  } 
   renameLoading.value = true;
   
   try {

@@ -15,7 +15,7 @@ Route::get('/dizaini', [DesignController::class, 'index']);
 Route::get('/dizaini/{id}', [DesignController::class, 'show']);
 Route::get('/categories', [CategoryController::class, 'index']);
 
-
+// Registered user routes
 Route::middleware(['web', 'auth:sanctum'])->group(function () {
     Route::get('/user', function (Request $request) { 
         return $request->user(); 
@@ -37,7 +37,7 @@ Route::middleware(['web', 'auth:sanctum', AdminMiddleware::class])->group(functi
     Route::post('/categories', [CategoryController::class, 'store']);
     Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
 
-    // Design management (Update, Sync, Delete)
+    // Design management (add, update, sync, delete)
     Route::post('/dizaini', [DesignController::class, 'store']);
     Route::delete('/dizaini/{id}', [DesignController::class, 'destroy']);
     Route::patch('/dizaini/{design}', [DesignController::class, 'update']);

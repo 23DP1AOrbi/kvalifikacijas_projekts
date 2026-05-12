@@ -81,7 +81,6 @@ import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useTheme } from "vuetify";
 import axios from "../bootstrap.js";
-// Using the same user import as your DesignGallery.vue
 import { user } from "../services/auth"; 
 
 const designs = ref([]);
@@ -93,9 +92,9 @@ const isDarkMode = computed(() => theme.global.name.value === 'dark');
 
 const fetchLatestDesigns = async () => {
   try {
-    await axios.get("/sanctum/csrf-cookie");
+    // await axios.get("/sanctum/csrf-cookie");
     const res = await axios.get("/api/dizaini");
-    // Sort by ID descending and take latest 3
+    // sorts by descending id and takes the newest 3
     designs.value = res.data.sort((a, b) => b.id - a.id).slice(0, 3);
   } catch (err) {
     console.error(err);
@@ -104,7 +103,6 @@ const fetchLatestDesigns = async () => {
   }
 };
 
-// Admin Logic matching your DesignGallery.vue
 const goToDesign = (id) => {
   if (user.value?.role === 'admin') {
     router.push(`/dizaini/${id}/edit`);
@@ -131,7 +129,7 @@ onMounted(fetchLatestDesigns);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   width: 100%;
-  max-width: 400px; /* Prevents card from becoming too huge on wide screens */
+  max-width: 400px; 
 }
 
 .design-card:hover {
@@ -143,8 +141,13 @@ onMounted(fetchLatestDesigns);
 .white-box-wrapper {
   width: 100%;
   position: relative;
-  padding-top: 100%; /* Perfect Square */
+  padding-top: 100%; 
   background-color: white;
+  background-image: linear-gradient(45deg, #fafafa 25%, transparent 25%), 
+                    linear-gradient(-45deg, #fafafa 25%, transparent 25%), 
+                    linear-gradient(45deg, transparent 75%, #fafafa 75%), 
+                    linear-gradient(-45deg, transparent 75%, #fafafa 75%);
+  background-size: 16px 16px;
   border-radius: 12px;
   overflow: hidden;
 }
@@ -155,7 +158,7 @@ onMounted(fetchLatestDesigns);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12%; /* Safe space for SVGs */
+  padding: 12%; 
 }
 
 .responsive-svg {

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('file_url'); 
+            $table->boolean('is_color')->default(true);
             $table->timestamps();
         });
     }

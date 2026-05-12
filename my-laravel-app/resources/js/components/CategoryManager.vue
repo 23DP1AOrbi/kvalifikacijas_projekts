@@ -17,7 +17,7 @@
           <v-text-field 
             v-model="newCategory" 
             label="Jaunas Kategorijas Nosaukums" 
-            variant="outlined"
+            variant="filled"
             density="compact" 
             hide-details
           />
@@ -112,7 +112,7 @@ const executeDelete = async () => {
   try {
     await axios.delete(`/api/categories/${categoryToDelete.value.id}`);
     fetchCategories(); 
-    categoryToDelete.value = null; // Reset
+    categoryToDelete.value = null; 
   } catch (err) {
     console.error("Delete failed", err);
   }

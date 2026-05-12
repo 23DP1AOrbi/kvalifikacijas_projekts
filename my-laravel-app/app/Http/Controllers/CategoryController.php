@@ -18,11 +18,9 @@ class CategoryController extends Controller
 
     public function destroy(Category $category)
     {
-        // 1. Remove all links to designs in the pivot table first
-        // This ensures designs aren't affected by the deletion
+        // removes the category from all the designs
         $category->designs()->detach();
 
-        // 2. Now delete the category itself
         $category->delete();
 
         return response()->json(['message' => 'Category removed successfully']);

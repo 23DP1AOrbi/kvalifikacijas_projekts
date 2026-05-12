@@ -47,7 +47,7 @@
                 density="compact"
                 :rules="[
                   v => !!v || 'Parole ir obligāta',
-                  v => v.length >= 8 || 'Parolei jābūt vismaz 8 simbolus garai'
+                  v => v.length >= 8 || 'Jābūt vismaz 8 simboliem'
                 ]"
                 :error-messages="errors.password"
                 @input="errors.password = []"
@@ -123,7 +123,7 @@ import { register } from "../services/auth";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
-const formRef = ref(null); // Reference to the form
+const formRef = ref(null);
 const isFormValid = ref(false);
 const loading = ref(false);
 const showPassword = ref(false);
@@ -144,10 +144,10 @@ const errors = ref({
 const successMessage = ref("");
 
 const registerUser = async () => {
-  // Validate before sending
+  
   if (!isFormValid.value) return;
 
-  errors.value = {}; // Clear previous errors
+  errors.value = {}; 
   successMessage.value = "";
   loading.value = true;
 
@@ -159,12 +159,7 @@ const registerUser = async () => {
       router.push("/");
     }, 1500);
   } catch (error) {
-    if (error.response?.status === 422) {
-      // Map Laravel errors to our error object
-      errors.value = error.response.data.errors;
-    } else {
       console.error("Server error:", error);
-    }
   } finally {
     loading.value = false;
   }
