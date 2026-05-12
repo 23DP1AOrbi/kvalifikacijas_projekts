@@ -17,7 +17,7 @@ const routeTitles = {
   '/registracija': 'Reģistrēties',
   '/profils': 'Mans Profils',
   'NotFound': 'Lapa Nav Atrasta'
-};
+}; 
 
 const updateTabMeta = () => {
   const pageName = routeTitles[route.path];
