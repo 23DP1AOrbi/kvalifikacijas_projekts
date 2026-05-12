@@ -9,7 +9,7 @@ import { fetchUser } from './services/auth'
 import '@mdi/font/css/materialdesignicons.css'
 
 
-axios.defaults.baseURL = "http://localhost:8000"
+// axios.defaults.baseURL = "http://localhost:8000"
 axios.defaults.withCredentials = true
 axios.defaults.withXSRFToken = true
 
