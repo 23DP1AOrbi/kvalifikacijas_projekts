@@ -96,6 +96,19 @@
               </v-alert>
             </v-expand-transition>
 
+            <v-expand-transition>
+            <v-alert
+              v-if="error"
+              type="error"
+              variant="tonal"
+              density="comfortable"
+              class="mt-4 rounded-lg"
+              closable
+            >
+              {{ error }}
+            </v-alert>
+          </v-expand-transition>
+
             <v-divider class="my-4"></v-divider>
 
             <div class="text-center">
@@ -140,6 +153,8 @@ const errors = ref({
   email: [],
   password: []
 });
+
+const error = ref("");
 const successMessage = ref("");
 
 const registerUser = async () => {
@@ -158,7 +173,25 @@ const registerUser = async () => {
       router.push("/dizaini");
     }, 1000);
   } catch (error) {
-      console.error("Server error:", error);
+      if (err.response?.status === 422) {
+
+      errors.value = err.response.data.errors || {};
+
+      if (errors.value.email?.length) {
+
+        if (errors.value.email[0].includes("already been taken")) {
+          error.value = "Šis e-pasts jau tiek izmantots.";
+        } else {
+          error.value = errors.value.email[0];
+        }
+
+      } else {
+        error.value = "Reģistrācija neizdevās.";
+      }
+
+    } else {
+      error.value = "Servera kļūda.";
+    }
   } finally {
     loading.value = false;
   }

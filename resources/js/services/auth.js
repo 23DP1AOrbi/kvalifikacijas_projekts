@@ -15,10 +15,12 @@ export const fetchUser = async () => {
   } catch (err) {
     
     user.value = null;
-    // Only log the error if it's NOT a 401 (Unauthorized)
-    if (err.response?.status !== 401) {
-      console.error("FetchUser failed:", err);
+    
+    if (err.response?.status === 401) {
+        user.value = null;
+        return null;
     }
+    console.error(err);
   }
 };
 
@@ -37,11 +39,11 @@ export const login = async (form) => {
 
 export const logout = async () => {
   try {
+    await axios.get('/sanctum/csrf-cookie');
     await axios.post("/api/logout");
 
     user.value = null;
 
-    await fetchUser(); 
     window.location.href = "/";
   } catch (err) {
     console.error(err);
