@@ -158,22 +158,26 @@ const error = ref("");
 const successMessage = ref("");
 
 const registerUser = async () => {
-  
+
   if (!isFormValid.value) return;
 
-  errors.value = {}; 
+  errors.value = {};
+  error.value = "";
   successMessage.value = "";
   loading.value = true;
 
   try {
+
     await register(form);
     successMessage.value = "Lietotājs veiksmīgi pievienots!";
-    
+
     setTimeout(() => {
       router.push("/dizaini");
     }, 1000);
-  } catch (error) {
-      if (err.response?.status === 422) {
+
+  } catch (err) {
+
+    if (err.response?.status === 422) {
 
       errors.value = err.response.data.errors || {};
 
@@ -192,9 +196,11 @@ const registerUser = async () => {
     } else {
       error.value = "Servera kļūda.";
     }
+
   } finally {
     loading.value = false;
   }
+
 };
 </script>
 
