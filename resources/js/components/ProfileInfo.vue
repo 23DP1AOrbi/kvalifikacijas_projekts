@@ -150,6 +150,8 @@ const updateProfile = async () => {
   errors.value = { name: [], email: [], password: [] };
   
   try {
+    await axios.get('/sanctum/csrf-cookie');
+    
     await axios.put("/api/user/update", tempForm);
     successMessage.value = "Profils veiksmīgi atjaunināts!";
     isEditing.value = false;
