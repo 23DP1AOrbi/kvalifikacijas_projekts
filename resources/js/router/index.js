@@ -15,7 +15,7 @@ import NotFound from '../components/NotFound.vue'
 
 const routes = [
     { path: '/', component: Home },
-    { path: '/par-mums', component: About },
+    // { path: '/par-mums', component: About },
     { path: '/registracija', component: Register },
     { path: '/pieslegties', component: Login },
     { path: '/profils', component: Profile, meta: {requiresUser: true} },

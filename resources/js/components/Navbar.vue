@@ -7,7 +7,7 @@
 >
     <v-list nav color="secondary">
       <v-list-item prepend-icon="mdi-home" title="Sākums" to="/"></v-list-item>
-      <v-list-item prepend-icon="mdi-information" title="Par Mums" to="/par-mums"></v-list-item>
+      <!-- <v-list-item prepend-icon="mdi-information" title="Par Mums" to="/par-mums"></v-list-item> -->
       <v-list-item prepend-icon="mdi-image-multiple" title="Dizaini" to="/dizaini"></v-list-item>
       
       <v-divider class="my-2" v-if="user?.role === 'admin'"></v-divider>
@@ -58,7 +58,7 @@
 
       <div class="hidden-sm-and-down d-flex align-center ml-md-16 ml-4">
         <v-btn variant="text" to="/" color="secondary" class="text-none mx-1">Sākums</v-btn>
-        <v-btn variant="text" to="/par-mums" color="secondary" class="text-none mx-1">Par Mums</v-btn>
+        <!-- <v-btn variant="text" to="/par-mums" color="secondary" class="text-none mx-1">Par Mums</v-btn> -->
         <v-btn variant="text" to="/dizaini" color="secondary" class="text-none mx-1">Dizaini</v-btn>
         
         <template v-if="user?.role === 'admin'">

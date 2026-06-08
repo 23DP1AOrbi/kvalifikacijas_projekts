@@ -9,7 +9,7 @@ const route = useRoute();
 
 const routeTitles = {
   '/': 'Sākums',
-  '/par-mums': 'Par Mums',
+  // '/par-mums': 'Par Mums',
   '/dizaini': 'Dizaini',
   '/kategorijas': 'Kategorijas',
   '/pievienot': 'Pievienot',

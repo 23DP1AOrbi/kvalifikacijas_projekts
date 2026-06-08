@@ -92,7 +92,6 @@ const isDarkMode = computed(() => theme.global.name.value === 'dark');
 
 const fetchLatestDesigns = async () => {
   try {
-    // await axios.get("/sanctum/csrf-cookie");
     const res = await axios.get("/api/dizaini");
     // sorts by descending id and takes the newest 3
     designs.value = res.data.sort((a, b) => b.id - a.id).slice(0, 3);

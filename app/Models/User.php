@@ -19,7 +19,6 @@ class User extends Authenticatable
         'role',
     ];
 
-    // If you want, you can hide the password from JSON output
     protected $hidden = [
         'password',
         'remember_token',

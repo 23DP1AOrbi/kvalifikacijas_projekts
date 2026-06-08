@@ -11,13 +11,10 @@ class DesignController extends Controller
 {
     public function index()
     {
-        // 1. Eager load categories using with('categories')
-        // 2. We use get() instead of all() to allow for the 'with' chain
+        // GETS all designs with their categories
         $designs = Design::with('categories')->get()->map(function ($design) {
             
-            // Ensure the file URL is accessible
-            // Note: If your DB stores 'designs/filename.svg', 
-            // this results in 'storage/designs/filename.svg'
+            // creates full file path for designs
             $design->file_url = asset('storage/' . $design->file_url);
             
             return $design;
@@ -39,6 +36,7 @@ class DesignController extends Controller
             'is_color' => 'required|boolean'
         ]);
 
+        // uploads svg in specific folder & saves the path for retrieving it
         $path = $request->file('image')->store('designs', 'public');
 
         $design = Design::create([
@@ -100,6 +98,7 @@ class DesignController extends Controller
             'category_ids.*' => 'exists:categories,id'
         ]);
 
+        // syncs design with the new categories or returns a blank array
         $design->categories()->sync($data['category_ids'] ?? []);
 
         return response()->json(['message' => 'Categories synced successfully']);
@@ -107,6 +106,7 @@ class DesignController extends Controller
 
     public function getStats(Request $request)
     {
+        // only admin can access
         if ($request->user()->role !== 'admin') {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
@@ -114,7 +114,7 @@ class DesignController extends Controller
         $totalDesigns = \App\Models\Design::count();
         $totalCategories = \App\Models\Category::count();
         
-        // calculates the average usage of categories per  design
+        // calculates the average usage of categories per design
         $pivotCount = DB::table('category_design')->count();
         $avgCategories = $totalDesigns > 0 ? round($pivotCount / $totalDesigns, 1) : 0;
 

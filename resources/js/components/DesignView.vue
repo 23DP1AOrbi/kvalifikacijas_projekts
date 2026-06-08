@@ -185,8 +185,10 @@ const fetchProjectData = async (projectId) => {
     const res = await axios.get(`/api/projects/${projectId}`);
     let colorData = res.data.color_data;
 
+    // check if colors are json text
     if (typeof colorData === 'string') {
       try {
+        // converts json string to object
         colorData = JSON.parse(colorData);
       } catch (e) {
         console.error("Invalid JSON in color_data", e);

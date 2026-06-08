@@ -124,7 +124,6 @@ const colorOptions = [
 
 const fetchData = async () => {
   try {
-    // await axios.get("/sanctum/csrf-cookie");
 
     const [designRes, catRes] = await Promise.all([
       axios.get("/api/dizaini"),
